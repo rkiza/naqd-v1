@@ -1,0 +1,297 @@
+@import "tailwindcss";
+
+/* ----------------------------------------------------------------------------
+   naqd · design system
+   A premium, Apple-inspired fintech aesthetic. Brand green #52D400 used as a
+   precise accent over a calm neutral surface system. Light is default; dark is
+   fully wired through the same tokens.
+---------------------------------------------------------------------------- */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Surfaces */
+  --background: #f6f7f6;
+  --surface: #ffffff;
+  --surface-muted: #f1f3f1;
+  --card: #ffffff;
+  --card-foreground: #0a0d0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0d0a;
+
+  /* Text */
+  --foreground: #0a0d0a;
+  --muted-foreground: #6b736b;
+  --subtle-foreground: #99a099;
+
+  /* Brand */
+  --primary: #3fb800;
+  --primary-strong: #2f9500;
+  --primary-foreground: #ffffff;
+  --brand: #52d400;
+  --brand-soft: #eafbe0;
+  --accent: #eef1ee;
+  --accent-foreground: #0a0d0a;
+
+  /* Semantic */
+  --positive: #1ba94c;
+  --positive-soft: #e6f6ec;
+  --negative: #e5484d;
+  --negative-soft: #fdecec;
+  --warning: #d9820a;
+  --warning-soft: #fdf2e3;
+  --info: #2f6df0;
+  --info-soft: #e9f0fe;
+
+  /* Lines & rings */
+  --border: #e7e9e7;
+  --border-strong: #d7dad7;
+  --input: #e7e9e7;
+  --ring: #3fb800;
+
+  /* Effects */
+  --shadow-color: 150deg 8% 12%;
+  --radius: 1rem;
+}
+
+.dark {
+  --background: #07090a;
+  --surface: #0e1213;
+  --surface-muted: #141a1b;
+  --card: #0e1213;
+  --card-foreground: #f2f5f2;
+  --popover: #11161700;
+  --popover: #121819;
+  --popover-foreground: #f2f5f2;
+
+  --foreground: #f2f5f2;
+  --muted-foreground: #9aa39c;
+  --subtle-foreground: #6a736c;
+
+  --primary: #52d400;
+  --primary-strong: #69e01f;
+  --primary-foreground: #06210a;
+  --brand: #52d400;
+  --brand-soft: #15240c;
+  --accent: #1a201c;
+  --accent-foreground: #f2f5f2;
+
+  --positive: #46d27e;
+  --positive-soft: #102a1a;
+  --negative: #ff6369;
+  --negative-soft: #2c1416;
+  --warning: #f5b056;
+  --warning-soft: #2a1f0e;
+  --info: #6ea0ff;
+  --info-soft: #111d33;
+
+  --border: #1f2623;
+  --border-strong: #2a322d;
+  --input: #222a26;
+  --ring: #52d400;
+
+  --shadow-color: 150deg 30% 2%;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-muted: var(--surface-muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-positive: var(--positive);
+  --color-positive-soft: var(--positive-soft);
+  --color-negative: var(--negative);
+  --color-negative-soft: var(--negative-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-app-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-arabic: var(--font-app-arabic), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-xs: calc(var(--radius) - 0.625rem);
+  --radius-sm: calc(var(--radius) - 0.5rem);
+  --radius-md: calc(var(--radius) - 0.25rem);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 0.5rem);
+  --radius-2xl: calc(var(--radius) + 1rem);
+
+  --shadow-xs: 0 1px 2px hsl(var(--shadow-color) / 0.06);
+  --shadow-sm: 0 1px 3px hsl(var(--shadow-color) / 0.08),
+    0 1px 2px hsl(var(--shadow-color) / 0.04);
+  --shadow-md: 0 4px 12px hsl(var(--shadow-color) / 0.08),
+    0 2px 4px hsl(var(--shadow-color) / 0.04);
+  --shadow-lg: 0 12px 32px hsl(var(--shadow-color) / 0.12),
+    0 4px 8px hsl(var(--shadow-color) / 0.05);
+  --shadow-xl: 0 24px 56px hsl(var(--shadow-color) / 0.16);
+
+  --animate-fade-up: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-in: fade-in 0.4s ease both;
+  --animate-scale-in: scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  /* Arabic typography: switch family + slightly looser leading for legibility. */
+  [dir="rtl"] body,
+  [lang="ar"] {
+    font-family: var(--font-arabic);
+  }
+  [lang="ar"] {
+    letter-spacing: 0;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--brand) 28%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Tabular figures for all monetary / numeric data. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  /* Custom scrollbar — quiet, premium. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--border-strong);
+    border-radius: 9999px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
+    background-clip: padding-box;
+  }
+}
+
+@layer utilities {
+  .glass {
+    background-color: color-mix(in oklab, var(--surface) 72%, transparent);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .bg-grid {
+    background-image: linear-gradient(
+        to right,
+        color-mix(in oklab, var(--border) 60%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--border) 60%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 28px 28px;
+  }
+  /* Mirror an inline icon when direction flips (e.g. arrows, chevrons). */
+  [dir="rtl"] .rtl-flip {
+    transform: scaleX(-1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
