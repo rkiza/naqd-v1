@@ -1,44 +1,63 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Star, ArrowUpDown, Plus } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { Star, ArrowUpDown, Plus, Search, X } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Segmented } from "@/components/ui/segmented";
 import { Delta } from "@/components/ui/trend";
 import { AreaChart } from "@/components/charts/area-chart";
 import { Sparkline } from "@/components/charts/sparkline";
 import { StockLogo } from "@/components/finance/stock-logo";
 import { markets, stocksFor, stockBySymbol, type MarketId, type Stock } from "@/data/markets";
 import { useMarket, SAR_PER_USD } from "./store";
+import { useLiveMarket, type Quote } from "./use-live-market";
+import { LivePrice } from "./live-price";
 import { TradeDialog } from "./trade-dialog";
 import { pick } from "@/lib/localized";
 import { Money } from "@/components/ui/money";
 import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
+type Filter = "all" | "gainers" | "losers" | "watch";
+
 export function MarketsScreen() {
   const locale = useLocale() as Locale;
   const t = useTranslations("markets");
   const { cash, positions, watchlist, toggleWatch, orders } = useMarket();
+  const { quotes, indices } = useLiveMarket();
 
   const [market, setMarket] = useState<MarketId>("sa");
-  const [trade, setTrade] = useState<{ stock: Stock; side: "buy" | "sell" } | null>(null);
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<Filter>("all");
+  const [trade, setTrade] = useState<{ stock: Stock; side: "buy" | "sell"; price: number } | null>(null);
 
+  const deferredQuery = useDeferredValue(query);
   const meta = markets[market];
-  const list = useMemo(() => stocksFor(market), [market]);
   const currency = meta.currency;
+  const idx = indices[market];
 
-  // Positions value in SAR across all markets.
+  const q = (symbol: string): Quote =>
+    quotes[symbol] ?? {
+      price: stockBySymbol(symbol)!.price,
+      change: stockBySymbol(symbol)!.change,
+      open: stockBySymbol(symbol)!.price,
+      series: stockBySymbol(symbol)!.series,
+    };
+
+  // Live positions value in SAR across all markets.
   const positionsValue = useMemo(() => {
     return Object.entries(positions).reduce((sum, [sym, pos]) => {
       const s = stockBySymbol(sym);
       if (!s) return sum;
       const fx = s.market === "us" ? SAR_PER_USD : 1;
-      return sum + pos.units * s.price * fx;
+      return sum + pos.units * q(sym).price * fx;
     }, 0);
-  }, [positions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [positions, quotes]);
 
   const ownedList = useMemo(
     () =>
@@ -48,14 +67,34 @@ export function MarketsScreen() {
     [positions],
   );
 
+  const list = useMemo(() => {
+    const base = stocksFor(market);
+    const term = deferredQuery.trim().toLowerCase();
+    let out = base.filter((s) => {
+      if (filter === "watch" && !watchlist.includes(s.symbol)) return false;
+      if (filter === "gainers" && q(s.symbol).change < 0) return false;
+      if (filter === "losers" && q(s.symbol).change >= 0) return false;
+      if (!term) return true;
+      return (
+        s.symbol.toLowerCase().includes(term) ||
+        s.name.en.toLowerCase().includes(term) ||
+        s.name.ar.includes(deferredQuery.trim())
+      );
+    });
+    if (filter === "gainers") out = [...out].sort((a, b) => q(b.symbol).change - q(a.symbol).change);
+    if (filter === "losers") out = [...out].sort((a, b) => q(a.symbol).change - q(b.symbol).change);
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [market, deferredQuery, filter, watchlist, quotes]);
+
   const money = (v: number, cur = currency, decimals = 2) => (
     <Money value={v} locale={locale} currency={cur} decimals={decimals} />
   );
 
-  const indexData = meta.series.map((v, i) => ({ t: String(i), v }));
+  const indexData = idx.series.map((v, i) => ({ t: String(i), v }));
 
   function openTrade(stock: Stock, side: "buy" | "sell") {
-    setTrade({ stock, side });
+    setTrade({ stock, side, price: q(stock.symbol).price });
   }
 
   return (
@@ -94,16 +133,19 @@ export function MarketsScreen() {
                 <p className="text-sm font-medium text-muted-foreground">
                   {pick(meta.index, locale)}
                 </p>
-                <span className="inline-flex items-center gap-1 rounded-full bg-positive-soft px-2 py-0.5 text-[0.7rem] font-medium text-positive">
-                  <span className="h-1.5 w-1.5 rounded-full bg-positive" />
-                  {t("open")}
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-positive-soft px-2 py-0.5 text-[0.7rem] font-medium text-positive">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-75" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-positive" />
+                  </span>
+                  {t("live")}
                 </span>
               </div>
               <div className="mt-1 flex items-center gap-3">
-                <span className="text-3xl font-semibold tracking-tight text-foreground tnum">
-                  {formatNumber(meta.indexValue, locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <span className="text-3xl font-semibold tracking-tight text-foreground tnum tabular-nums">
+                  {formatNumber(idx.value, locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
-                <Delta value={meta.indexChange} />
+                <Delta value={idx.change} />
               </div>
             </div>
           </div>
@@ -111,7 +153,7 @@ export function MarketsScreen() {
             <AreaChart
               data={indexData}
               height={200}
-              color={meta.indexChange >= 0 ? "var(--brand)" : "var(--negative)"}
+              color={idx.change >= 0 ? "var(--brand)" : "var(--negative)"}
               formatValue={(v) => formatNumber(v, locale, { maximumFractionDigits: 0 })}
             />
           </div>
@@ -120,8 +162,8 @@ export function MarketsScreen() {
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-1">
           <Card className="p-5">
             <p className="text-sm font-medium text-muted-foreground">{t("portfolioValue")}</p>
-            <p className="mt-2 text-2xl font-semibold text-foreground tnum">
-              {money(positionsValue, "SAR", 0)}
+            <p className="mt-2 text-2xl font-semibold text-foreground">
+              <LivePrice value={positionsValue} locale={locale} currency="SAR" decimals={0} />
             </p>
             <p className="mt-1 text-xs text-muted-foreground tnum">
               {ownedList.length} {t("holdings")}
@@ -150,8 +192,9 @@ export function MarketsScreen() {
             <div className="space-y-0.5">
               {ownedList.map(({ stock, pos }) => {
                 const cur = stock.market === "us" ? "USD" : "SAR";
-                const value = pos.units * stock.price;
-                const ret = ((stock.price - pos.avgCost) / pos.avgCost) * 100;
+                const live = q(stock.symbol);
+                const value = pos.units * live.price;
+                const ret = ((live.price - pos.avgCost) / pos.avgCost) * 100;
                 return (
                   <button
                     key={stock.symbol}
@@ -170,7 +213,7 @@ export function MarketsScreen() {
                     </div>
                     <div className="text-end">
                       <p className="flex justify-end text-sm font-semibold text-foreground">
-                        <Money value={value} locale={locale} currency={cur} decimals={0} />
+                        <LivePrice value={value} locale={locale} currency={cur} decimals={0} />
                       </p>
                       <Delta value={ret} withBackground={false} />
                     </div>
@@ -184,71 +227,111 @@ export function MarketsScreen() {
 
       {/* Stocks table */}
       <Card>
-        <CardHeader>
-          <CardTitle>
+        <CardHeader className="flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+          <CardTitle className="shrink-0">
             {pick(meta.label, locale)} · {t("allStocks")}
           </CardTitle>
-          <span className="text-xs text-muted-foreground">
-            {list.length} {t("allStocks").toLowerCase()}
-          </span>
+          <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+            <label className="relative w-full sm:w-56">
+              <Search className="pointer-events-none absolute inset-y-0 start-3 my-auto h-4 w-4 text-muted-foreground" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t("searchPlaceholder")}
+                className="h-10 w-full rounded-xl border border-border bg-surface ps-9 pe-9 text-sm text-foreground placeholder:text-subtle-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              />
+              {query && (
+                <button
+                  onClick={() => setQuery("")}
+                  className="absolute inset-y-0 end-3 my-auto text-muted-foreground hover:text-foreground"
+                  aria-label="clear"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </label>
+            <Segmented
+              size="sm"
+              value={filter}
+              onChange={(v) => setFilter(v as Filter)}
+              options={[
+                { value: "all", label: t("filterAll") },
+                { value: "gainers", label: t("gainers") },
+                { value: "losers", label: t("losers") },
+                { value: "watch", label: t("watchlist") },
+              ]}
+            />
+          </div>
         </CardHeader>
         <CardContent className="px-2 sm:px-3">
-          <div className="space-y-0.5">
-            {list.map((stock) => {
-              const watched = watchlist.includes(stock.symbol);
-              return (
-                <div
-                  key={stock.symbol}
-                  className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-surface-muted"
-                >
-                  <button
-                    onClick={() => toggleWatch(stock.symbol)}
-                    aria-label={t("watchlist")}
-                    className="shrink-0"
-                  >
-                    <Star
-                      className={cn(
-                        "h-4 w-4 transition-colors",
-                        watched ? "fill-warning text-warning" : "text-subtle-foreground hover:text-warning",
-                      )}
-                    />
-                  </button>
-                  <StockLogo domain={stock.domain} symbol={stock.symbol} color={stock.color} size={40} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {pick(stock.name, locale)}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground" dir="ltr">
-                      {stock.symbol} · {pick(stock.sector, locale)}
-                    </p>
-                  </div>
-                  <div className="hidden sm:block">
-                    <Sparkline
-                      data={stock.series}
-                      width={80}
-                      height={32}
-                      color={stock.change >= 0 ? "var(--positive)" : "var(--negative)"}
-                    />
-                  </div>
-                  <div className="w-24 text-end">
-                    <p className="text-sm font-semibold text-foreground tnum" dir="ltr">
-                      {money(stock.price)}
-                    </p>
-                    <Delta value={stock.change} withBackground={false} />
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="subtle"
-                    className="hidden shrink-0 sm:inline-flex"
-                    onClick={() => openTrade(stock, "buy")}
-                  >
-                    <ArrowUpDown className="h-3.5 w-3.5" />
-                    {t("trade")}
-                  </Button>
-                </div>
-              );
-            })}
-          </div>
+          {list.length === 0 ? (
+            <p className="py-12 text-center text-sm text-muted-foreground">{t("noMatch")}</p>
+          ) : (
+            <motion.div layout className="space-y-0.5">
+              <AnimatePresence mode="popLayout" initial={false}>
+                {list.map((stock) => {
+                  const watched = watchlist.includes(stock.symbol);
+                  const live = q(stock.symbol);
+                  return (
+                    <motion.div
+                      layout
+                      key={stock.symbol}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                      className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-surface-muted"
+                    >
+                      <button
+                        onClick={() => toggleWatch(stock.symbol)}
+                        aria-label={t("watchlist")}
+                        className="shrink-0"
+                      >
+                        <Star
+                          className={cn(
+                            "h-4 w-4 transition-colors",
+                            watched ? "fill-warning text-warning" : "text-subtle-foreground hover:text-warning",
+                          )}
+                        />
+                      </button>
+                      <StockLogo domain={stock.domain} symbol={stock.symbol} color={stock.color} size={40} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {pick(stock.name, locale)}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground" dir="ltr">
+                          {stock.symbol} · {pick(stock.sector, locale)}
+                        </p>
+                      </div>
+                      <div className="hidden sm:block">
+                        <Sparkline
+                          data={live.series}
+                          width={80}
+                          height={32}
+                          color={live.change >= 0 ? "var(--positive)" : "var(--negative)"}
+                        />
+                      </div>
+                      <div className="w-24 text-end">
+                        <p className="flex justify-end text-sm font-semibold text-foreground">
+                          <LivePrice value={live.price} locale={locale} currency={stock.market === "us" ? "USD" : "SAR"} decimals={2} />
+                        </p>
+                        <Delta value={live.change} withBackground={false} />
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="subtle"
+                        className="hidden shrink-0 sm:inline-flex"
+                        onClick={() => openTrade(stock, "buy")}
+                      >
+                        <ArrowUpDown className="h-3.5 w-3.5" />
+                        {t("trade")}
+                      </Button>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </motion.div>
+          )}
         </CardContent>
       </Card>
 
@@ -298,6 +381,7 @@ export function MarketsScreen() {
 
       <TradeDialog
         stock={trade?.stock ?? null}
+        price={trade?.price}
         open={!!trade}
         onClose={() => setTrade(null)}
         initialSide={trade?.side ?? "buy"}

@@ -18,11 +18,13 @@ import { formatNumber } from "@/lib/format";
 
 export function TradeDialog({
   stock,
+  price: priceProp,
   open,
   onClose,
   initialSide = "buy",
 }: {
   stock: Stock | null;
+  price?: number;
   open: boolean;
   onClose: () => void;
   initialSide?: "buy" | "sell";
@@ -33,6 +35,10 @@ export function TradeDialog({
   const [side, setSide] = useState<"buy" | "sell">(initialSide);
   const [qty, setQty] = useState(1);
   const [done, setDone] = useState(false);
+
+  // Price is frozen at the moment the dialog opens so the order value is stable
+  // while the user picks a quantity (live ticks don't move it under them).
+  const price = priceProp ?? stock?.price ?? 0;
 
   useEffect(() => {
     if (open) {
@@ -49,11 +55,11 @@ export function TradeDialog({
   const buyingPowerNative = cash / fx;
   const maxQty = stock
     ? side === "buy"
-      ? Math.max(0, Math.floor(buyingPowerNative / stock.price))
+      ? Math.max(0, Math.floor(buyingPowerNative / price))
       : owned
     : 0;
 
-  const orderValue = stock ? qty * stock.price : 0;
+  const orderValue = stock ? qty * price : 0;
   const canSubmit = stock && qty > 0 && qty <= maxQty;
 
   const errorMsg = useMemo(() => {
@@ -65,8 +71,8 @@ export function TradeDialog({
 
   function submit() {
     if (!stock || !canSubmit) return;
-    if (side === "buy") buy(stock.symbol, qty, stock.price);
-    else sell(stock.symbol, qty, stock.price);
+    if (side === "buy") buy(stock.symbol, qty, price);
+    else sell(stock.symbol, qty, price);
     setDone(true);
     setTimeout(onClose, 1400);
   }
@@ -107,7 +113,7 @@ export function TradeDialog({
             </div>
             <div className="text-end">
               <p className="text-base font-semibold text-foreground tnum" dir="ltr">
-                {money(stock.price)}
+                {money(price)}
               </p>
               <Delta value={stock.change} />
             </div>
