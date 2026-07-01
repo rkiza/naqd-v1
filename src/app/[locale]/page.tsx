@@ -18,6 +18,7 @@ import { CardVisual } from "@/components/finance/card-visual";
 import { Sparkline } from "@/components/charts/sparkline";
 import ColorBends from "@/components/react-bits/color-bends";
 import { MarketsTicker } from "@/features/landing/markets-ticker";
+import { BrowserFrame, PhoneFrame } from "@/features/landing/mockups";
 import { card } from "@/data/finance";
 import { formatCurrency, formatPercent } from "@/lib/format";
 
@@ -46,7 +47,7 @@ export default async function LandingPage({
   ];
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-dvh overflow-x-clip bg-background">
       {/* ── Hero (dark, ColorBends) ─────────────────────────────── */}
       <section className="relative overflow-hidden bg-[#06140a] text-white">
         <ColorBends
@@ -65,7 +66,7 @@ export default async function LandingPage({
           <header className="flex h-20 items-center justify-between">
             <Logo className="[&_span]:text-white" />
             <nav className="hidden items-center gap-7 text-sm font-medium text-white/70 md:flex">
-              <a href="#features" className="hover:text-white">{t("navFeatures")}</a>
+              <a href="#preview" className="hover:text-white">{t("navFeatures")}</a>
               <a href="#markets" className="hover:text-white">{t("liveMarkets")}</a>
               <a href="#security" className="hover:text-white">{t("navSecurity")}</a>
             </nav>
@@ -79,7 +80,7 @@ export default async function LandingPage({
           </header>
 
           {/* Hero content */}
-          <div className="grid items-center gap-12 py-12 lg:grid-cols-2 lg:py-20">
+          <div className="grid items-center gap-12 py-14 lg:grid-cols-2 lg:py-24">
             <div className="animate-fade-up">
               <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/90 backdrop-blur">
                 <span className="h-2 w-2 rounded-full bg-brand" />
@@ -127,7 +128,7 @@ export default async function LandingPage({
                 label={t("badge").split("·")[0].trim()}
                 className="rotate-[-3deg] shadow-2xl"
               />
-              <div className="absolute -bottom-8 -start-4 w-44 rounded-2xl border border-white/10 bg-white/10 p-4 shadow-lg backdrop-blur-xl sm:-start-10">
+              <div className="absolute -bottom-8 start-0 w-44 rounded-2xl border border-white/10 bg-white/10 p-4 shadow-lg backdrop-blur-xl sm:-start-6">
                 <p className="text-xs text-white/60">{tc("total")}</p>
                 <p className="mt-0.5 text-lg font-semibold text-white tnum">
                   {formatCurrency(126850, lc, { compact: true })}
@@ -137,7 +138,7 @@ export default async function LandingPage({
                 </div>
                 <Sparkline data={[96, 99, 98, 103, 109, 112, 118, 122, 127]} width={150} height={28} color="#52d400" />
               </div>
-              <div className="absolute -end-3 -top-5 flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-3 py-2 shadow-lg backdrop-blur-xl sm:-end-6">
+              <div className="absolute -top-5 end-0 flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-3 py-2 shadow-lg backdrop-blur-xl sm:-end-4">
                 <span className="grid h-7 w-7 place-items-center rounded-lg bg-primary text-primary-foreground">
                   <Sparkles className="h-3.5 w-3.5" />
                 </span>
@@ -160,42 +161,89 @@ export default async function LandingPage({
       </section>
 
       <div className="mx-auto w-full max-w-[1180px] px-5 sm:px-8">
-        {/* ── Markets feature ───────────────────────────────────── */}
-        <section id="markets" className="grid items-center gap-8 py-16 lg:grid-cols-2 lg:py-24">
-          <div>
-            <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-primary-strong">
-              <CandlestickChart className="h-5 w-5" />
-            </span>
-            <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-foreground">
-              {t("marketsTitle")}
-            </h2>
-            <p className="mt-3 max-w-md text-muted-foreground">{t("marketsBody")}</p>
-            <Button asChild className="mt-6">
-              <Link href="/markets">
-                {t("openMarkets")}
-                <ArrowRight className="h-4 w-4 rtl-flip" />
-              </Link>
-            </Button>
+        {/* ── Product preview ───────────────────────────────────── */}
+        <section id="preview" className="py-20 text-center lg:py-28">
+          <span className="text-xs font-semibold uppercase tracking-wider text-primary-strong">
+            {t("previewBadge")}
+          </span>
+          <h2 className="mx-auto mt-3 max-w-2xl text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            {t("previewTitle")}
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-balance text-muted-foreground">
+            {t("previewSubtitle")}
+          </p>
+          <div className="relative mt-12">
+            <div className="pointer-events-none absolute inset-x-0 -top-6 mx-auto h-64 max-w-3xl rounded-full bg-brand/15 blur-3xl" />
+            <BrowserFrame
+              src="/mockups/dashboard.png"
+              alt="naqd dashboard"
+              className="relative mx-auto max-w-4xl"
+            />
           </div>
-          <div className="rounded-3xl border border-border bg-gradient-to-br from-brand-soft/50 to-card p-6 shadow-sm">
-            <MarketsTicker />
-            <div className="mt-2 grid grid-cols-2 gap-3">
-              {["🇸🇦", "🇺🇸"].map((flag, i) => (
-                <div key={flag} className="rounded-2xl border border-border bg-card p-4">
-                  <p className="text-2xl">{flag}</p>
-                  <p className="mt-2 text-sm font-semibold text-foreground">
-                    {i === 0 ? "TASI" : "S&P 500"}
-                  </p>
-                  <p className="text-xs font-medium text-positive tnum" dir="ltr">
-                    {i === 0 ? "+0.74%" : "+0.42%"}
-                  </p>
-                </div>
-              ))}
+        </section>
+
+        {/* ── Showcase: Markets ─────────────────────────────────── */}
+        <ShowcaseRow
+          icon={<CandlestickChart className="h-5 w-5" />}
+          title={t("marketsTitle")}
+          body={t("marketsBody")}
+          cta={{ href: "/markets", label: t("openMarkets") }}
+          media={<BrowserFrame src="/mockups/markets.png" alt="naqd markets" url="naqd.sa/markets" />}
+        />
+
+        {/* ── Showcase: AI Assistant (reversed) ─────────────────── */}
+        <ShowcaseRow
+          reverse
+          icon={<Sparkles className="h-5 w-5" />}
+          title={t("showcaseAiTitle")}
+          body={t("showcaseAiBody")}
+          cta={{ href: "/assistant", label: t("tryIt") }}
+          media={<BrowserFrame src="/mockups/assistant.png" alt="naqd AI assistant" url="naqd.sa/assistant" />}
+        />
+
+        {/* ── Showcase: Card (phone) ────────────────────────────── */}
+        <ShowcaseRow
+          icon={<CreditCard className="h-5 w-5" />}
+          title={t("showcaseCardTitle")}
+          body={t("showcaseCardBody")}
+          cta={{ href: "/card", label: t("tryIt") }}
+          media={
+            <div className="flex justify-center">
+              <PhoneFrame src="/mockups/card.png" alt="naqd virtual card" />
+            </div>
+          }
+        />
+
+        {/* ── Bilingual showcase ────────────────────────────────── */}
+        <section className="py-16 lg:py-24">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="grid mx-auto h-11 w-11 place-items-center rounded-xl bg-brand-soft text-primary-strong">
+              <Languages className="h-5 w-5" />
+            </span>
+            <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              {t("bilingualTitle")}
+            </h2>
+            <p className="mt-4 text-balance text-muted-foreground">{t("bilingualBody")}</p>
+          </div>
+          <div className="mt-12 grid gap-6 md:grid-cols-2">
+            <div>
+              <div className="mb-3 flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <span className="rounded-md bg-accent px-2 py-0.5 text-xs">EN</span>
+                {t("englishLabel")}
+              </div>
+              <BrowserFrame src="/mockups/dashboard.png" alt="naqd in English" />
+            </div>
+            <div>
+              <div className="mb-3 flex items-center justify-end gap-2 text-sm font-medium text-muted-foreground" dir="rtl">
+                <span className="rounded-md bg-accent px-2 py-0.5 text-xs">AR</span>
+                {t("arabicLabel")}
+              </div>
+              <BrowserFrame src="/mockups/dashboard-ar.png" alt="naqd in Arabic" url="naqd.sa/ar" />
             </div>
           </div>
         </section>
 
-        {/* ── Features ──────────────────────────────────────────── */}
+        {/* ── Features grid ─────────────────────────────────────── */}
         <section id="features" className="pb-16">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {features.map((f) => (
@@ -216,12 +264,12 @@ export default async function LandingPage({
         {/* ── Security band ─────────────────────────────────────── */}
         <section
           id="security"
-          className="mb-16 flex flex-col items-center gap-4 rounded-3xl border border-border bg-gradient-to-br from-brand-soft/60 to-card p-10 text-center"
+          className="mb-16 flex flex-col items-center gap-4 rounded-3xl border border-border bg-gradient-to-br from-brand-soft/60 to-card p-10 text-center lg:p-16"
         >
           <span className="grid h-12 w-12 place-items-center rounded-2xl bg-card text-primary shadow-sm">
             <ShieldCheck className="h-6 w-6" />
           </span>
-          <h2 className="max-w-xl text-balance text-2xl font-semibold tracking-tight text-foreground">
+          <h2 className="max-w-xl text-balance text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             {t("trustedBy")}
           </h2>
           <div className="mt-2 flex flex-wrap justify-center gap-3">
@@ -243,5 +291,43 @@ export default async function LandingPage({
         </footer>
       </div>
     </div>
+  );
+}
+
+/** Alternating image + copy showcase row. */
+function ShowcaseRow({
+  icon,
+  title,
+  body,
+  cta,
+  media,
+  reverse = false,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+  cta: { href: string; label: string };
+  media: React.ReactNode;
+  reverse?: boolean;
+}) {
+  return (
+    <section className="grid items-center gap-10 border-t border-border py-16 lg:grid-cols-2 lg:gap-16 lg:py-24">
+      <div className={reverse ? "lg:order-2" : undefined}>
+        <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-primary-strong">
+          {icon}
+        </span>
+        <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-foreground">
+          {title}
+        </h2>
+        <p className="mt-3 max-w-md text-muted-foreground">{body}</p>
+        <Button asChild className="mt-6">
+          <Link href={cta.href}>
+            {cta.label}
+            <ArrowRight className="h-4 w-4 rtl-flip" />
+          </Link>
+        </Button>
+      </div>
+      <div className={reverse ? "lg:order-1" : undefined}>{media}</div>
+    </section>
   );
 }
