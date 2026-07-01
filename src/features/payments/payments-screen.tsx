@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Send, Plus, Star, Zap } from "lucide-react";
+import { Send, Plus, Star, Zap, Check } from "lucide-react";
+import { Dialog } from "@/components/ui/dialog";
 import type { Locale } from "@/i18n/routing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,8 +21,12 @@ const billTone = { due: "warning", scheduled: "info", paid: "positive" } as cons
 export function PaymentsScreen() {
   const locale = useLocale() as Locale;
   const t = useTranslations("payments");
+  const tc = useTranslations("common");
   const [amount, setAmount] = useState("500");
   const [selected, setSelected] = useState(beneficiaries[0].id);
+  const [sent, setSent] = useState(false);
+
+  const recipient = beneficiaries.find((b) => b.id === selected)!;
 
   const numericAmount = Number(amount) || 0;
   const billsTotal = bills
@@ -82,7 +87,12 @@ export function PaymentsScreen() {
               </div>
             </div>
 
-            <Button className="w-full" size="lg">
+            <Button
+              className="w-full"
+              size="lg"
+              disabled={numericAmount <= 0}
+              onClick={() => setSent(true)}
+            >
               <Send className="h-4 w-4 rtl-flip" />
               {t("send", { amount: formatCurrency(numericAmount, locale, { decimals: 0 }) })}
             </Button>
@@ -171,6 +181,24 @@ export function PaymentsScreen() {
           ))}
         </CardContent>
       </Card>
+
+      {/* Success confirmation */}
+      <Dialog open={sent} onClose={() => setSent(false)} title={t("sendMoney")}>
+        <div className="flex flex-col items-center gap-3 py-6 text-center">
+          <span className="grid h-16 w-16 place-items-center rounded-full bg-positive-soft text-positive">
+            <Check className="h-8 w-8" strokeWidth={2.5} />
+          </span>
+          <p className="text-lg font-semibold text-foreground">
+            {formatCurrency(numericAmount, locale, { decimals: 2 })}
+          </p>
+          <p className="max-w-xs text-sm text-muted-foreground">
+            {t("send", { amount: "" }).trim()} · {pick(recipient.name, locale)}
+          </p>
+          <Button className="mt-2 w-full" onClick={() => setSent(false)}>
+            {tc("done")}
+          </Button>
+        </div>
+      </Dialog>
     </div>
   );
 }

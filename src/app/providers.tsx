@@ -2,6 +2,7 @@
 
 import { ThemeProvider } from "next-themes";
 import type { ReactNode } from "react";
+import { MarketProvider } from "@/features/markets/store";
 
 /**
  * Global client providers. Theme defaults to light; dark is fully wired and
@@ -17,7 +18,7 @@ export function Providers({ children }: { children: ReactNode }) {
       disableTransitionOnChange
       storageKey="naqd-theme"
     >
-      {children}
+      <MarketProvider>{children}</MarketProvider>
     </ThemeProvider>
   );
 }

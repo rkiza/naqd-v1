@@ -20,7 +20,7 @@ import {
 import type { Locale } from "@/i18n/routing";
 import { Link, useRouter, usePathname } from "@/i18n/routing";
 import { useParams } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardBody, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -84,7 +84,7 @@ export function SettingsScreen() {
     <div className="grid gap-6 lg:grid-cols-2">
       {/* Profile */}
       <Card className="lg:col-span-2">
-        <CardContent className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center">
+        <CardBody className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
           <Avatar name={pick(user.name, locale)} size="lg" />
           <div className="flex-1">
             <div className="flex items-center gap-2">
@@ -100,7 +100,7 @@ export function SettingsScreen() {
               })}
             </p>
           </div>
-        </CardContent>
+        </CardBody>
       </Card>
 
       {/* Preferences */}

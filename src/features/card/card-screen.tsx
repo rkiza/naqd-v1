@@ -18,11 +18,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { CardVisual } from "@/components/finance/card-visual";
+import { CardVisual, RewardsPass } from "@/components/finance/card-visual";
 import { ApplePayButton } from "@/components/finance/apple-pay-button";
+import { WalletStack } from "./wallet-stack";
 import { card } from "@/data/finance";
 import { pick } from "@/lib/localized";
-import { formatCurrency, formatPercent } from "@/lib/format";
+import { formatCurrency, formatNumber, formatPercent } from "@/lib/format";
 
 export function CardScreen() {
   const locale = useLocale() as Locale;
@@ -58,23 +59,60 @@ export function CardScreen() {
       {/* Card + primary actions */}
       <div className="space-y-5">
         <div className="relative mx-auto w-full max-w-sm">
-          <CardVisual
-            holder={card.holder}
-            last4={card.last4}
-            expiry={card.expiry}
-            network={card.network}
-            label={pick(card.kind, locale)}
-            frozen={frozen}
-            showNumber={showDetails}
+          <WalletStack
+            cards={[
+              {
+                id: "savings",
+                face: (
+                  <CardVisual
+                    holder={card.holder}
+                    last4="9920"
+                    expiry={card.expiry}
+                    network="mada"
+                    label={t("savingsCard")}
+                    variant="teal"
+                  />
+                ),
+              },
+              {
+                id: "rewards",
+                face: (
+                  <RewardsPass
+                    title={t("rewards")}
+                    points={formatNumber(18450, locale)}
+                    pointsLabel={t("points")}
+                  />
+                ),
+              },
+              {
+                id: "virtual",
+                face: (
+                  <div className="relative">
+                    <CardVisual
+                      holder={card.holder}
+                      last4={card.last4}
+                      expiry={card.expiry}
+                      network={card.network}
+                      label={pick(card.kind, locale)}
+                      frozen={frozen}
+                      showNumber={showDetails}
+                    />
+                    {frozen && (
+                      <div className="absolute inset-0 grid place-items-center rounded-[1.4rem] bg-foreground/20 backdrop-blur-[2px]">
+                        <span className="flex items-center gap-2 rounded-full bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-lg">
+                          <Snowflake className="h-4 w-4 text-info" />
+                          {t("frozen")}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ),
+              },
+            ]}
           />
-          {frozen && (
-            <div className="absolute inset-0 grid place-items-center rounded-[1.4rem] bg-foreground/20 backdrop-blur-[2px]">
-              <span className="flex items-center gap-2 rounded-full bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-lg">
-                <Snowflake className="h-4 w-4 text-info" />
-                {t("frozen")}
-              </span>
-            </div>
-          )}
+          <p className="mt-3 text-center text-xs text-subtle-foreground">
+            {t("tapHint")}
+          </p>
         </div>
 
         <div className="mx-auto flex w-full max-w-sm flex-col gap-3">

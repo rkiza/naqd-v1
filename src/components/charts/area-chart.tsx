@@ -3,7 +3,7 @@
 import { useId, useMemo, useState } from "react";
 import { useLocale } from "next-intl";
 import { localeDirection, type Locale } from "@/i18n/routing";
-import { useMeasure, scale, smoothPath, type Pt } from "./chart-utils";
+import { useMeasure, smoothPath, r, type Pt } from "./chart-utils";
 import { cn } from "@/lib/utils";
 
 export type AreaPoint = { t: string; v: number };
@@ -59,7 +59,7 @@ export function AreaChart({
     const baseY = height - pad.bottom;
     const first = pts[0];
     const last = pts[pts.length - 1];
-    const area = `${line} L ${last.x} ${baseY} L ${first.x} ${baseY} Z`;
+    const area = `${line} L ${r(last.x)} ${r(baseY)} L ${r(first.x)} ${r(baseY)} Z`;
     return { pts, line, area, baseY };
   }, [width, data, height, rtl, pad.left, pad.right, pad.top, pad.bottom]);
 

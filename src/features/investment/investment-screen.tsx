@@ -10,7 +10,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardBody, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { investmentProducts } from "@/data/content";
@@ -35,7 +35,7 @@ export function InvestmentScreen() {
       {/* Auto-invest */}
       <Card className="relative overflow-hidden border-primary/30 bg-gradient-to-br from-brand-soft/70 via-card to-card">
         <div className="pointer-events-none absolute -end-10 -top-10 h-40 w-40 rounded-full bg-brand/20 blur-3xl" />
-        <CardContent className="relative flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <CardBody className="relative flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4">
             <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground">
               <Repeat className="h-6 w-6" />
@@ -55,7 +55,7 @@ export function InvestmentScreen() {
             </div>
           </div>
           <Button variant="outline">{t("explore")}</Button>
-        </CardContent>
+        </CardBody>
       </Card>
 
       {/* Opportunities */}

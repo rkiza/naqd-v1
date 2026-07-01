@@ -12,7 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardBody } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { insights } from "@/data/content";
 import type { Insight } from "@/data/types";
@@ -62,7 +62,7 @@ export function InsightsScreen() {
       {/* Featured */}
       <Card className={cn("relative overflow-hidden border bg-gradient-to-br from-brand-soft/50 via-card to-card", featuredTone.ring)}>
         <div className="pointer-events-none absolute -end-12 -top-12 h-44 w-44 rounded-full bg-brand/15 blur-3xl" />
-        <CardContent className="relative flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <CardBody className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4">
             <span className={cn("grid h-12 w-12 shrink-0 place-items-center rounded-2xl", featuredTone.icon)}>
               <FeaturedIcon className="h-6 w-6" />
@@ -83,7 +83,7 @@ export function InsightsScreen() {
             {t("act")}
             <ArrowRight className="h-4 w-4 rtl-flip" />
           </Button>
-        </CardContent>
+        </CardBody>
       </Card>
 
       {/* Grid */}
@@ -120,7 +120,7 @@ export function InsightsScreen() {
 
       {/* Weekly digest */}
       <Card>
-        <CardContent className="flex items-center gap-4 p-5">
+        <CardBody className="flex items-center gap-4">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-accent text-foreground">
             <CalendarClock className="h-5 w-5" />
           </span>
@@ -129,7 +129,7 @@ export function InsightsScreen() {
             <p className="text-xs text-muted-foreground">{t("digestBody")}</p>
           </div>
           <Button variant="outline" size="sm">{t("forYou")}</Button>
-        </CardContent>
+        </CardBody>
       </Card>
     </div>
   );

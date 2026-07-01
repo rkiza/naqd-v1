@@ -39,12 +39,12 @@ export function formatNumber(
 export function formatCurrency(
   value: number,
   locale: Locale,
-  options: { compact?: boolean; decimals?: number } = {},
+  options: { compact?: boolean; decimals?: number; currency?: string } = {},
 ) {
-  const { compact = false, decimals } = options;
+  const { compact = false, decimals, currency = CURRENCY } = options;
   return new Intl.NumberFormat(intlLocale[locale], {
     style: "currency",
-    currency: CURRENCY,
+    currency,
     numberingSystem: numberingSystem[locale],
     notation: compact ? "compact" : "standard",
     minimumFractionDigits: decimals ?? (compact ? 0 : 2),

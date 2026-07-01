@@ -3,7 +3,7 @@
 import { useId } from "react";
 import { useLocale } from "next-intl";
 import { localeDirection, type Locale } from "@/i18n/routing";
-import { smoothPath, type Pt } from "./chart-utils";
+import { smoothPath, r, type Pt } from "./chart-utils";
 
 /** Tiny inline trend line for stat cards. Mirrors horizontally in RTL. */
 export function Sparkline({
@@ -35,7 +35,7 @@ export function Sparkline({
     return { x, y };
   });
   const line = smoothPath(pts);
-  const area = `${line} L ${pts[pts.length - 1].x} ${height} L ${pts[0].x} ${height} Z`;
+  const area = `${line} L ${r(pts[pts.length - 1].x)} ${height} L ${r(pts[0].x)} ${height} Z`;
 
   return (
     <svg width={width} height={height} className="overflow-visible">

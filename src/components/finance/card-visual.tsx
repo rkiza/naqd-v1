@@ -1,6 +1,50 @@
 import { LogoMark } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
 
+/** A lighter "pass" card (loyalty), styled to sit in the Apple Wallet stack. */
+export function RewardsPass({
+  title,
+  points,
+  pointsLabel,
+  className,
+}: {
+  title: string;
+  points: string;
+  pointsLabel: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "relative aspect-[1.585] w-full overflow-hidden rounded-[1.4rem] p-6 shadow-xl",
+        "bg-[linear-gradient(135deg,#f4f6f0_0%,#e9f7dd_55%,#dff3cf_100%)] text-[#0a2a00]",
+        className,
+      )}
+    >
+      <div className="pointer-events-none absolute -end-8 -top-8 h-40 w-40 rounded-full bg-brand/25 blur-3xl" />
+      <div className="relative flex h-full flex-col justify-between">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-brand">
+            <LogoMark className="h-6 w-6" />
+            <span className="text-base font-semibold text-[#0a2a00]">{title}</span>
+          </div>
+          <svg viewBox="0 0 24 24" className="h-6 w-6 text-brand" fill="currentColor" aria-hidden>
+            <path d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 7.1-1.01L12 2z" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-3xl font-semibold tracking-tight tnum" dir="ltr">
+            {points}
+          </p>
+          <p className="text-xs font-medium uppercase tracking-wider text-[#0a2a00]/60">
+            {pointsLabel}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** mada / network glyph rendered as a small wordmark. */
 function NetworkMark({ network }: { network: string }) {
   return (
@@ -15,6 +59,14 @@ function NetworkMark({ network }: { network: string }) {
  * EMV chip, and number/holder details. Kept LTR internally so the card art
  * reads consistently across locales.
  */
+const variantBg: Record<string, string> = {
+  green:
+    "bg-[radial-gradient(120%_120%_at_0%_0%,#0d2b12_0%,#0a1f0d_38%,#06140a_100%)]",
+  graphite:
+    "bg-[radial-gradient(120%_120%_at_0%_0%,#3a3a40_0%,#1a1a1e_45%,#0b0b0d_100%)]",
+  teal: "bg-[radial-gradient(120%_120%_at_0%_0%,#0c3f3d_0%,#0a2a2a_40%,#051b1a_100%)]",
+};
+
 export function CardVisual({
   holder,
   last4,
@@ -23,6 +75,7 @@ export function CardVisual({
   label,
   frozen = false,
   showNumber = false,
+  variant = "green",
   className,
 }: {
   holder: string;
@@ -32,6 +85,7 @@ export function CardVisual({
   label?: string;
   frozen?: boolean;
   showNumber?: boolean;
+  variant?: "green" | "graphite" | "teal";
   className?: string;
 }) {
   return (
@@ -39,7 +93,7 @@ export function CardVisual({
       dir="ltr"
       className={cn(
         "relative aspect-[1.585] w-full overflow-hidden rounded-[1.4rem] p-6 text-white shadow-xl transition-all duration-500",
-        "bg-[radial-gradient(120%_120%_at_0%_0%,#0d2b12_0%,#0a1f0d_38%,#06140a_100%)]",
+        variantBg[variant],
         frozen && "saturate-50",
         className,
       )}

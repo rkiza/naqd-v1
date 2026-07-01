@@ -12,7 +12,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Segmented } from "@/components/ui/segmented";
 import { notifications as seed } from "@/data/content";
 import type { Notification } from "@/data/types";
@@ -70,7 +70,7 @@ export function NotificationsScreen() {
       </p>
 
       <Card>
-        <CardContent className="divide-y divide-border p-2">
+        <div className="divide-y divide-border p-2">
           {visible.length === 0 && (
             <p className="py-16 text-center text-sm text-muted-foreground">
               {t("empty")}
@@ -119,7 +119,7 @@ export function NotificationsScreen() {
               </button>
             );
           })}
-        </CardContent>
+        </div>
       </Card>
     </div>
   );

@@ -64,6 +64,18 @@ export function CardContent({
   return <div className={cn("p-5 pt-0 sm:p-6 sm:pt-0", className)} {...props} />;
 }
 
+/**
+ * Full-padding content for cards WITHOUT a CardHeader. Unlike CardContent
+ * (which zeroes its top padding to sit under a header), CardBody keeps even
+ * padding on all sides at every breakpoint.
+ */
+export function CardBody({
+  className,
+  ...props
+}: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("p-5 sm:p-6", className)} {...props} />;
+}
+
 export function CardFooter({
   className,
   ...props

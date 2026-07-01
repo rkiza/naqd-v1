@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Wallet, PiggyBank, LineChart, Plus, ArrowLeftRight, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/routing";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardBody, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/ui/stat-card";
 import { Sparkline } from "@/components/charts/sparkline";
@@ -32,7 +32,7 @@ export function WalletScreen() {
     <div className="space-y-6">
       {/* Hero */}
       <Card className="overflow-hidden">
-        <CardContent className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <CardBody className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-medium text-muted-foreground">
               {t("totalBalance")}
@@ -59,7 +59,7 @@ export function WalletScreen() {
           <div className="shrink-0 sm:w-56">
             <Sparkline data={spark} width={224} height={72} />
           </div>
-        </CardContent>
+        </CardBody>
       </Card>
 
       {/* In / Out */}

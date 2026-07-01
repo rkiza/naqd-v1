@@ -34,13 +34,10 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                     className={cn(
                       "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
                       active
-                        ? "bg-surface text-foreground shadow-xs"
+                        ? "bg-surface text-foreground shadow-xs ring-1 ring-border"
                         : "text-muted-foreground hover:bg-surface/60 hover:text-foreground",
                     )}
                   >
-                    {active && (
-                      <span className="absolute inset-y-1.5 start-0 w-1 rounded-full bg-primary" />
-                    )}
                     <Icon
                       className={cn(
                         "h-[1.15rem] w-[1.15rem] shrink-0 transition-colors",

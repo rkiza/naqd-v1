@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Search, X } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Segmented } from "@/components/ui/segmented";
 import { TransactionRow } from "@/components/finance/transaction-row";
 import { transactions } from "@/data/transactions";
@@ -95,9 +95,9 @@ export function TransactionsScreen() {
 
       {count === 0 && (
         <Card>
-          <CardContent className="flex flex-col items-center gap-2 py-16 text-center">
+          <div className="flex flex-col items-center gap-2 p-6 py-16 text-center">
             <p className="text-sm font-medium text-foreground">{t("noResults")}</p>
-          </CardContent>
+          </div>
         </Card>
       )}
 
@@ -108,11 +108,11 @@ export function TransactionsScreen() {
             {t("upcoming")}
           </h2>
           <Card>
-            <CardContent className="space-y-0.5 py-3">
+            <div className="space-y-0.5 p-2">
               {upcoming.map((tx) => (
                 <TransactionRow key={tx.id} tx={tx} showDate />
               ))}
-            </CardContent>
+            </div>
           </Card>
         </section>
       )}
@@ -124,11 +124,11 @@ export function TransactionsScreen() {
             {formatDate(day, locale, { weekday: "long", day: "numeric", month: "long" })}
           </h2>
           <Card>
-            <CardContent className="space-y-0.5 py-3">
+            <div className="space-y-0.5 p-2">
               {items.map((tx) => (
                 <TransactionRow key={tx.id} tx={tx} />
               ))}
-            </CardContent>
+            </div>
           </Card>
         </section>
       ))}

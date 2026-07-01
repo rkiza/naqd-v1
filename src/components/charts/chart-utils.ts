@@ -24,6 +24,16 @@ export function useMeasure<T extends HTMLElement = HTMLDivElement>() {
 
 export type Pt = { x: number; y: number };
 
+/**
+ * Round to 2 decimals. Chart geometry is derived from Math.sin/Math.cos, which
+ * can differ in the last ULP between the Node (V8) server and the browser
+ * engine — rounding keeps the serialized SVG identical and avoids hydration
+ * mismatches.
+ */
+export function r(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
 /** Linear scale helper. */
 export function scale(
   value: number,
@@ -45,7 +55,7 @@ export function smoothPath(points: Pt[], tension = 0.2): string {
   if (points.length === 0) return "";
   if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
 
-  let d = `M ${points[0].x} ${points[0].y}`;
+  let d = `M ${r(points[0].x)} ${r(points[0].y)}`;
   for (let i = 0; i < points.length - 1; i++) {
     const p0 = points[i - 1] ?? points[i];
     const p1 = points[i];
@@ -57,7 +67,7 @@ export function smoothPath(points: Pt[], tension = 0.2): string {
     const cp2x = p2.x - ((p3.x - p1.x) / 6) * (1 + tension);
     const cp2y = p2.y - ((p3.y - p1.y) / 6) * (1 + tension);
 
-    d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+    d += ` C ${r(cp1x)} ${r(cp1y)}, ${r(cp2x)} ${r(cp2y)}, ${r(p2.x)} ${r(p2.y)}`;
   }
   return d;
 }
@@ -82,10 +92,10 @@ export function arcPath(
   const y3 = cy + rInner * Math.sin(startAngle);
 
   return [
-    `M ${x0} ${y0}`,
-    `A ${rOuter} ${rOuter} 0 ${large} 1 ${x1} ${y1}`,
-    `L ${x2} ${y2}`,
-    `A ${rInner} ${rInner} 0 ${large} 0 ${x3} ${y3}`,
+    `M ${r(x0)} ${r(y0)}`,
+    `A ${r(rOuter)} ${r(rOuter)} 0 ${large} 1 ${r(x1)} ${r(y1)}`,
+    `L ${r(x2)} ${r(y2)}`,
+    `A ${r(rInner)} ${r(rInner)} 0 ${large} 0 ${r(x3)} ${r(y3)}`,
     "Z",
   ].join(" ");
 }
