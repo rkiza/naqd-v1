@@ -17,7 +17,8 @@ import { Button } from "@/components/ui/button";
 import { insights } from "@/data/content";
 import type { Insight } from "@/data/types";
 import { pick } from "@/lib/localized";
-import { formatCurrency, formatPercent } from "@/lib/format";
+import { formatPercent } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 import { cn } from "@/lib/utils";
 
 const kindIcon: Record<Insight["kind"], LucideIcon> = {
@@ -48,9 +49,11 @@ export function InsightsScreen() {
 
   const renderMetric = (ins: Insight) => {
     if (ins.metric == null) return null;
-    return ins.metricKind === "currency"
-      ? formatCurrency(ins.metric, locale, { decimals: 0 })
-      : formatPercent(ins.metric, locale, { decimals: 0 });
+    return ins.metricKind === "currency" ? (
+      <Money value={ins.metric} locale={locale} decimals={0} />
+    ) : (
+      formatPercent(ins.metric, locale, { decimals: 0 })
+    );
   };
 
   const [featured, ...rest] = insights;

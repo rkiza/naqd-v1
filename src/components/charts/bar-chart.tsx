@@ -23,7 +23,7 @@ export function CashflowBars({
 }: {
   data: BarGroup[];
   height?: number;
-  formatValue: (v: number) => string;
+  formatValue: (v: number) => React.ReactNode;
   formatLabel: (t: string) => string;
   incomeColor?: string;
   expenseColor?: string;

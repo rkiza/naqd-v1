@@ -24,7 +24,7 @@ export function AreaChart({
   data: AreaPoint[];
   height?: number;
   color?: string;
-  formatValue: (v: number) => string;
+  formatValue: (v: number) => React.ReactNode;
   formatLabel?: (t: string) => string;
   className?: string;
 }) {

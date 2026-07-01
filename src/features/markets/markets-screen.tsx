@@ -14,7 +14,8 @@ import { markets, stocksFor, stockBySymbol, type MarketId, type Stock } from "@/
 import { useMarket, SAR_PER_USD } from "./store";
 import { TradeDialog } from "./trade-dialog";
 import { pick } from "@/lib/localized";
-import { formatCurrency, formatNumber } from "@/lib/format";
+import { Money } from "@/components/ui/money";
+import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export function MarketsScreen() {
@@ -47,8 +48,9 @@ export function MarketsScreen() {
     [positions],
   );
 
-  const money = (v: number, cur = currency, decimals = 2) =>
-    formatCurrency(v, locale, { currency: cur, decimals });
+  const money = (v: number, cur = currency, decimals = 2) => (
+    <Money value={v} locale={locale} currency={cur} decimals={decimals} />
+  );
 
   const indexData = meta.series.map((v, i) => ({ t: String(i), v }));
 
@@ -161,13 +163,14 @@ export function MarketsScreen() {
                       <p className="truncate text-sm font-medium text-foreground">
                         {pick(stock.name, locale)}
                       </p>
-                      <p className="text-xs text-muted-foreground tnum" dir="ltr">
-                        {formatNumber(pos.units, locale)} {t("unit")} · {t("avgCost")} {formatCurrency(pos.avgCost, locale, { currency: cur, decimals: 2 })}
+                      <p className="flex items-center gap-1 text-xs text-muted-foreground tnum" dir="ltr">
+                        {formatNumber(pos.units, locale)} {t("unit")} · {t("avgCost")}{" "}
+                        <Money value={pos.avgCost} locale={locale} currency={cur} decimals={2} />
                       </p>
                     </div>
                     <div className="text-end">
-                      <p className="text-sm font-semibold text-foreground tnum" dir="ltr">
-                        {formatCurrency(value, locale, { currency: cur, decimals: 0 })}
+                      <p className="flex justify-end text-sm font-semibold text-foreground">
+                        <Money value={value} locale={locale} currency={cur} decimals={0} />
                       </p>
                       <Delta value={ret} withBackground={false} />
                     </div>
@@ -277,12 +280,13 @@ export function MarketsScreen() {
                       <p className="truncate text-sm font-medium text-foreground">
                         {pick(s.name, locale)}
                       </p>
-                      <p className="text-xs text-muted-foreground tnum" dir="ltr">
-                        {formatNumber(o.units, locale)} {t("unit")} @ {formatCurrency(o.price, locale, { currency: cur, decimals: 2 })}
+                      <p className="flex items-center gap-1 text-xs text-muted-foreground tnum" dir="ltr">
+                        {formatNumber(o.units, locale)} {t("unit")} @{" "}
+                        <Money value={o.price} locale={locale} currency={cur} decimals={2} />
                       </p>
                     </div>
-                    <p className="text-sm font-semibold text-foreground tnum" dir="ltr">
-                      {formatCurrency(o.units * o.price, locale, { currency: cur, decimals: 0 })}
+                    <p className="text-sm font-semibold text-foreground">
+                      <Money value={o.units * o.price} locale={locale} currency={cur} decimals={0} />
                     </p>
                   </div>
                 );

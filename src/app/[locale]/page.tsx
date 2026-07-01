@@ -20,7 +20,8 @@ import ColorBends from "@/components/react-bits/color-bends";
 import { MarketsTicker } from "@/features/landing/markets-ticker";
 import { BrowserFrame, PhoneFrame } from "@/features/landing/mockups";
 import { card } from "@/data/finance";
-import { formatCurrency, formatPercent } from "@/lib/format";
+import { formatPercent } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 export default async function LandingPage({
   params,
@@ -42,7 +43,7 @@ export default async function LandingPage({
 
   const stats = [
     { value: "48,000+", label: t("statsUsers") },
-    { value: formatCurrency(214_000_000, lc, { compact: true }), label: t("statsInvested") },
+    { value: <Money value={214_000_000} locale={lc} compact />, label: t("statsInvested") },
     { value: "4.9 ★", label: t("statsRating") },
   ];
 
@@ -130,8 +131,8 @@ export default async function LandingPage({
               />
               <div className="absolute -bottom-8 start-0 w-44 rounded-2xl border border-white/10 bg-white/10 p-4 shadow-lg backdrop-blur-xl sm:-start-6">
                 <p className="text-xs text-white/60">{tc("total")}</p>
-                <p className="mt-0.5 text-lg font-semibold text-white tnum">
-                  {formatCurrency(126850, lc, { compact: true })}
+                <p className="mt-0.5 text-lg font-semibold text-white">
+                  <Money value={126850} locale={lc} compact />
                 </p>
                 <div className="mt-1 text-xs font-medium text-brand" dir="ltr">
                   {formatPercent(11.5, lc, { signed: true })}

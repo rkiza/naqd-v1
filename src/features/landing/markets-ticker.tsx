@@ -4,7 +4,7 @@ import { useLocale } from "next-intl";
 import type { Locale } from "@/i18n/routing";
 import { stocks } from "@/data/markets";
 import { StockLogo } from "@/components/finance/stock-logo";
-import { formatCurrency } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 import { cn } from "@/lib/utils";
 
 /** Auto-scrolling live-markets ticker for the landing page. */
@@ -26,11 +26,13 @@ export function MarketsTicker() {
               <span className="text-sm font-semibold text-foreground" dir="ltr">
                 {s.symbol}
               </span>
-              <span className="text-sm text-muted-foreground tnum" dir="ltr">
-                {formatCurrency(s.price, locale, {
-                  currency: s.market === "us" ? "USD" : "SAR",
-                  decimals: 2,
-                })}
+              <span className="text-sm text-muted-foreground">
+                <Money
+                  value={s.price}
+                  locale={locale}
+                  currency={s.market === "us" ? "USD" : "SAR"}
+                  decimals={2}
+                />
               </span>
               <span
                 className={cn("text-xs font-medium tnum", up ? "text-positive" : "text-negative")}

@@ -5,7 +5,8 @@ import type { Locale } from "@/i18n/routing";
 import type { Goal } from "@/data/types";
 import { DynamicIcon } from "@/components/ui/dynamic-icon";
 import { pick } from "@/lib/localized";
-import { formatCurrency, formatPercent } from "@/lib/format";
+import { Money } from "@/components/ui/money";
+import { formatPercent } from "@/lib/format";
 
 export function GoalRow({ goal }: { goal: Goal }) {
   const locale = useLocale() as Locale;
@@ -24,8 +25,9 @@ export function GoalRow({ goal }: { goal: Goal }) {
           <p className="truncate text-sm font-medium text-foreground">
             {pick(goal.name, locale)}
           </p>
-          <p className="text-xs text-muted-foreground tnum">
-            {formatCurrency(goal.saved, locale, { decimals: 0 })} / {formatCurrency(goal.target, locale, { decimals: 0, compact: true })}
+          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Money value={goal.saved} locale={locale} decimals={0} /> /{" "}
+            <Money value={goal.target} locale={locale} compact />
           </p>
         </div>
         <span className="text-sm font-semibold text-foreground tnum">

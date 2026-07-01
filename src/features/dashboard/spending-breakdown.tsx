@@ -8,7 +8,8 @@ import { DonutChart } from "@/components/charts/donut-chart";
 import { spendingByCategory, monthlySpend } from "@/data/finance";
 import { categories } from "@/data/categories";
 import { pick } from "@/lib/localized";
-import { formatCurrency, formatPercent } from "@/lib/format";
+import { Money } from "@/components/ui/money";
+import { formatPercent } from "@/lib/format";
 
 export function SpendingBreakdown() {
   const locale = useLocale() as Locale;
@@ -43,12 +44,12 @@ export function SpendingBreakdown() {
               <p className="text-[0.7rem] text-muted-foreground">
                 {activeSlice ? activeSlice.label : t("thisMonth")}
               </p>
-              <p className="text-lg font-semibold text-foreground tnum">
-                {formatCurrency(
-                  activeSlice ? activeSlice.value : monthlySpend,
-                  locale,
-                  { compact: true },
-                )}
+              <p className="text-lg font-semibold text-foreground">
+                <Money
+                  value={activeSlice ? activeSlice.value : monthlySpend}
+                  locale={locale}
+                  compact
+                />
               </p>
             </div>
           }

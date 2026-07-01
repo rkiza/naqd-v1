@@ -15,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { investmentProducts } from "@/data/content";
 import { pick } from "@/lib/localized";
-import { formatCurrency, formatPercent, formatDate } from "@/lib/format";
+import { formatPercent, formatDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 const riskTone = { low: "positive", medium: "warning", high: "negative" } as const;
 
@@ -101,8 +102,8 @@ export function InvestmentScreen() {
                 </div>
                 <div className="text-end">
                   <p className="text-xs text-muted-foreground">{t("minimum")}</p>
-                  <p className="text-sm font-medium text-foreground tnum">
-                    {formatCurrency(p.minInvestment, locale, { decimals: 0 })}
+                  <p className="text-sm font-medium text-foreground">
+                    <Money value={p.minInvestment} locale={locale} decimals={0} />
                   </p>
                 </div>
               </div>

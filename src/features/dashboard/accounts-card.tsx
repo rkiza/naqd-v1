@@ -7,7 +7,7 @@ import { Link } from "@/i18n/routing";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { accounts } from "@/data/finance";
 import { pick } from "@/lib/localized";
-import { formatCurrency } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 const icons = { current: Wallet, savings: PiggyBank, investment: LineChart };
 
@@ -47,8 +47,8 @@ export function AccountsCard() {
                   {acc.number}
                 </p>
               </div>
-              <p className="text-sm font-semibold text-foreground tnum">
-                {formatCurrency(acc.balance, locale, { decimals: 0 })}
+              <p className="text-sm font-semibold text-foreground">
+                <Money value={acc.balance} locale={locale} decimals={0} />
               </p>
             </Link>
           );

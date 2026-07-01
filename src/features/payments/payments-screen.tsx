@@ -13,7 +13,9 @@ import { DynamicIcon } from "@/components/ui/dynamic-icon";
 import { beneficiaries, bills } from "@/data/content";
 import { categories } from "@/data/categories";
 import { pick } from "@/lib/localized";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
+import { RiyalGlyph } from "@/components/brand/riyal";
 import { cn } from "@/lib/utils";
 
 const billTone = { due: "warning", scheduled: "info", paid: "positive" } as const;
@@ -46,7 +48,7 @@ export function PaymentsScreen() {
             <div className="rounded-2xl bg-surface-muted p-5 text-center">
               <p className="text-xs font-medium text-muted-foreground">{t("amount")}</p>
               <div className="mt-1 flex items-center justify-center gap-1" dir="ltr">
-                <span className="text-2xl font-semibold text-muted-foreground">﷼</span>
+                <RiyalGlyph className="h-[1.4rem] w-[1.4rem] text-muted-foreground" />
                 <input
                   inputMode="decimal"
                   value={amount}
@@ -94,7 +96,10 @@ export function PaymentsScreen() {
               onClick={() => setSent(true)}
             >
               <Send className="h-4 w-4 rtl-flip" />
-              {t("send", { amount: formatCurrency(numericAmount, locale, { decimals: 0 }) })}
+              <span className="inline-flex items-center gap-1.5">
+                {t("send", { amount: "" }).trim()}
+                <Money value={numericAmount} locale={locale} decimals={0} />
+              </span>
             </Button>
           </CardContent>
         </Card>
@@ -131,7 +136,7 @@ export function PaymentsScreen() {
             <p className="mt-0.5 text-xs text-muted-foreground">
               {t("billsDueTotal")}:{" "}
               <span className="font-medium text-foreground tnum">
-                {formatCurrency(billsTotal, locale, { decimals: 0 })}
+                <Money value={billsTotal} locale={locale} decimals={0} />
               </span>
             </p>
           </div>
@@ -164,8 +169,8 @@ export function PaymentsScreen() {
                 </div>
               </div>
               <div className="flex flex-col items-end gap-1.5">
-                <span className="text-sm font-semibold text-foreground tnum">
-                  {formatCurrency(bill.amount, locale, { decimals: 0 })}
+                <span className="text-sm font-semibold text-foreground">
+                  <Money value={bill.amount} locale={locale} decimals={0} />
                 </span>
                 {bill.status === "due" ? (
                   <Button size="sm" variant="primary" className="h-7 px-3 text-xs">
@@ -189,7 +194,7 @@ export function PaymentsScreen() {
             <Check className="h-8 w-8" strokeWidth={2.5} />
           </span>
           <p className="text-lg font-semibold text-foreground">
-            {formatCurrency(numericAmount, locale, { decimals: 2 })}
+            <Money value={numericAmount} locale={locale} decimals={2} />
           </p>
           <p className="max-w-xs text-sm text-muted-foreground">
             {t("send", { amount: "" }).trim()} · {pick(recipient.name, locale)}

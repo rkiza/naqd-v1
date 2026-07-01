@@ -23,7 +23,8 @@ import { ApplePayButton } from "@/components/finance/apple-pay-button";
 import { WalletStack } from "./wallet-stack";
 import { card } from "@/data/finance";
 import { pick } from "@/lib/localized";
-import { formatCurrency, formatNumber, formatPercent } from "@/lib/format";
+import { formatNumber, formatPercent } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 export function CardScreen() {
   const locale = useLocale() as Locale;
@@ -169,8 +170,9 @@ export function CardScreen() {
             <div>
               <div className="flex items-center justify-between text-sm">
                 <span className="font-medium text-foreground">{t("monthlyLimit")}</span>
-                <span className="text-muted-foreground tnum">
-                  {formatCurrency(card.spentThisMonth, locale, { decimals: 0 })} / {formatCurrency(card.monthlyLimit, locale, { decimals: 0 })}
+                <span className="inline-flex items-center gap-1 text-muted-foreground">
+                  <Money value={card.spentThisMonth} locale={locale} decimals={0} /> /{" "}
+                  <Money value={card.monthlyLimit} locale={locale} decimals={0} />
                 </span>
               </div>
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-surface-muted">
@@ -179,8 +181,8 @@ export function CardScreen() {
                   style={{ width: `${spentPct}%` }}
                 />
               </div>
-              <p className="mt-1.5 text-xs text-muted-foreground tnum">
-                {formatCurrency(remaining, locale, { decimals: 0 })} {t("remaining")} · {formatPercent(spentPct, locale, { decimals: 0 })}
+              <p className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
+                <Money value={remaining} locale={locale} decimals={0} /> {t("remaining")} · {formatPercent(spentPct, locale, { decimals: 0 })}
               </p>
             </div>
           </CardContent>

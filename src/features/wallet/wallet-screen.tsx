@@ -12,7 +12,7 @@ import { TransactionRow } from "@/components/finance/transaction-row";
 import { accounts, totalBalance, balanceHistory } from "@/data/finance";
 import { transactions } from "@/data/transactions";
 import { pick } from "@/lib/localized";
-import { formatCurrency } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 const icons = { current: Wallet, savings: PiggyBank, investment: LineChart };
 
@@ -37,8 +37,8 @@ export function WalletScreen() {
             <p className="text-sm font-medium text-muted-foreground">
               {t("totalBalance")}
             </p>
-            <p className="mt-1 text-3xl font-semibold tracking-tight text-foreground tnum sm:text-4xl">
-              {formatCurrency(totalBalance, locale, { decimals: 2 })}
+            <p className="mt-1 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              <Money value={totalBalance} locale={locale} decimals={2} />
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               {t("across", { count: accounts.length })}
@@ -68,13 +68,13 @@ export function WalletScreen() {
           label={t("moneyIn")}
           accent="var(--positive)"
           icon={<ArrowDownLeft className="h-4 w-4" />}
-          value={<span dir="ltr">{formatCurrency(moneyIn, locale, { decimals: 0 })}</span>}
+          value={<Money value={moneyIn} locale={locale} decimals={0} />}
         />
         <StatCard
           label={t("moneyOut")}
           accent="var(--negative)"
           icon={<ArrowUpRight className="h-4 w-4" />}
-          value={<span dir="ltr">{formatCurrency(moneyOut, locale, { decimals: 0 })}</span>}
+          value={<Money value={moneyOut} locale={locale} decimals={0} />}
         />
       </div>
 
@@ -97,8 +97,8 @@ export function WalletScreen() {
                 <p className="mt-4 text-sm text-muted-foreground">
                   {pick(acc.name, locale)}
                 </p>
-                <p className="mt-0.5 text-xl font-semibold text-foreground tnum">
-                  {formatCurrency(acc.balance, locale, { decimals: 2 })}
+                <p className="mt-0.5 text-xl font-semibold text-foreground">
+                  <Money value={acc.balance} locale={locale} decimals={2} />
                 </p>
                 <Link
                   href="/transactions"

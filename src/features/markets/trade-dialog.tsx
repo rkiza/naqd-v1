@@ -13,7 +13,8 @@ import { StockLogo } from "@/components/finance/stock-logo";
 import { Sparkline } from "@/components/charts/sparkline";
 import { useMarket, SAR_PER_USD } from "./store";
 import { pick } from "@/lib/localized";
-import { formatCurrency, formatNumber } from "@/lib/format";
+import { Money } from "@/components/ui/money";
+import { formatNumber } from "@/lib/format";
 
 export function TradeDialog({
   stock,
@@ -70,7 +71,9 @@ export function TradeDialog({
     setTimeout(onClose, 1400);
   }
 
-  const money = (v: number) => formatCurrency(v, locale, { currency, decimals: 2 });
+  const money = (v: number) => (
+    <Money value={v} locale={locale} currency={currency} decimals={2} />
+  );
 
   return (
     <Dialog open={open} onClose={onClose} title={pick(stock.name, locale)}>
@@ -138,10 +141,14 @@ export function TradeDialog({
           <div>
             <div className="mb-2 flex items-center justify-between text-sm">
               <span className="font-medium text-foreground">{t("quantity")}</span>
-              <span className="text-muted-foreground">
-                {side === "buy"
-                  ? `${t("available")}: ${money(buyingPowerNative)}`
-                  : t("owned", { units: formatNumber(owned, locale), unit: t("unit") })}
+              <span className="inline-flex items-center gap-1 text-muted-foreground">
+                {side === "buy" ? (
+                  <>
+                    {t("available")}: {money(buyingPowerNative)}
+                  </>
+                ) : (
+                  t("owned", { units: formatNumber(owned, locale), unit: t("unit") })
+                )}
               </span>
             </div>
             <div className="flex items-center gap-3">

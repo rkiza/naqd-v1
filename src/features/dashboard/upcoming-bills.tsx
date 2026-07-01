@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { bills } from "@/data/content";
 import { categories } from "@/data/categories";
 import { pick } from "@/lib/localized";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
+import { formatDate } from "@/lib/format";
 
 export function UpcomingBills() {
   const locale = useLocale() as Locale;
@@ -48,8 +49,8 @@ export function UpcomingBills() {
               </p>
             </div>
             <div className="flex flex-col items-end gap-1">
-              <span className="text-sm font-semibold text-foreground tnum">
-                {formatCurrency(bill.amount, locale, { decimals: 0 })}
+              <span className="text-sm font-semibold text-foreground">
+                <Money value={bill.amount} locale={locale} decimals={0} />
               </span>
               {bill.autopay && (
                 <Badge tone="brand" className="text-[0.625rem]">

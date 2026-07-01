@@ -19,13 +19,8 @@ import {
   allocationTargets,
 } from "@/data/portfolio";
 import { pick } from "@/lib/localized";
-import {
-  formatCurrency,
-  formatSignedCurrency,
-  formatPercent,
-  formatDate,
-  formatNumber,
-} from "@/lib/format";
+import { formatPercent, formatDate, formatNumber } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 type Period = "quarter" | "halfYear" | "year" | "all";
 const windows: Record<Period, number> = { quarter: 3, halfYear: 6, year: 12, all: 12 };
@@ -67,15 +62,15 @@ export function PortfolioScreen() {
           <div>
             <p className="text-sm font-medium text-muted-foreground">{t("totalValue")}</p>
             <div className="mt-1 flex items-center gap-3">
-              <span className="text-3xl font-semibold tracking-tight text-foreground tnum">
-                {formatCurrency(portfolioValue, locale, { decimals: 0 })}
+              <span className="text-3xl font-semibold tracking-tight text-foreground">
+                <Money value={portfolioValue} locale={locale} decimals={0} />
               </span>
               <Delta value={todayChange} />
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {t("totalGain")}:{" "}
-              <span className="font-medium text-positive tnum" dir="ltr">
-                {formatSignedCurrency(portfolioGain, locale)} ({formatPercent(portfolioGainPercent, locale, { signed: true })})
+            <p className="mt-1 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+              {t("totalGain")}:
+              <span className="inline-flex items-center gap-1 font-medium text-positive" dir="ltr">
+                <Money value={portfolioGain} locale={locale} signed decimals={2} /> ({formatPercent(portfolioGainPercent, locale, { signed: true })})
               </span>
             </p>
           </div>
@@ -101,7 +96,7 @@ export function PortfolioScreen() {
           <AreaChart
             data={data}
             height={240}
-            formatValue={(v) => formatCurrency(v, locale, { decimals: 0 })}
+            formatValue={(v) => <Money value={v} locale={locale} decimals={0} />}
             formatLabel={(tt) => formatDate(`${tt}-01`, locale, { month: "long", year: "numeric" })}
           />
         </div>
@@ -146,8 +141,8 @@ export function PortfolioScreen() {
                       </div>
                     </div>
                     <div className="text-end">
-                      <p className="text-sm font-semibold text-foreground tnum">
-                        {formatCurrency(h.value, locale, { decimals: 0 })}
+                      <p className="text-sm font-semibold text-foreground">
+                        <Money value={h.value} locale={locale} decimals={0} />
                       </p>
                       <p className="text-xs text-muted-foreground tnum sm:hidden">
                         <Delta value={ret} withBackground={false} />

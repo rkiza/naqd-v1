@@ -6,7 +6,8 @@ import type { Transaction } from "@/data/types";
 import { categories } from "@/data/categories";
 import { DynamicIcon } from "@/components/ui/dynamic-icon";
 import { pick } from "@/lib/localized";
-import { formatSignedCurrency, formatTime, formatDate } from "@/lib/format";
+import { formatTime, formatDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 import { cn } from "@/lib/utils";
 
 export function TransactionRow({
@@ -64,12 +65,11 @@ export function TransactionRow({
       <div className="text-end">
         <p
           className={cn(
-            "text-sm font-semibold tnum",
+            "text-sm font-semibold",
             income ? "text-positive" : "text-foreground",
           )}
-          dir="ltr"
         >
-          {formatSignedCurrency(tx.amount, locale)}
+          <Money value={tx.amount} locale={locale} signed />
         </p>
         <p className="text-xs text-subtle-foreground tnum">
           {tx.status === "scheduled"

@@ -16,7 +16,8 @@ import {
 } from "@/data/finance";
 import { categories } from "@/data/categories";
 import { pick } from "@/lib/localized";
-import { formatCurrency, formatPercent, formatDate } from "@/lib/format";
+import { formatPercent, formatDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 export function AnalyticsScreen() {
   const locale = useLocale() as Locale;
@@ -35,19 +36,19 @@ export function AnalyticsScreen() {
           label={t("income")}
           accent="var(--positive)"
           icon={<ArrowDownLeft className="h-4 w-4" />}
-          value={formatCurrency(monthlyIncome, locale, { decimals: 0 })}
+          value={<Money value={monthlyIncome} locale={locale} decimals={0} />}
         />
         <StatCard
           label={t("expenses")}
           accent="var(--negative)"
           icon={<ArrowUpRight className="h-4 w-4" />}
-          value={formatCurrency(monthlySpend, locale, { decimals: 0 })}
+          value={<Money value={monthlySpend} locale={locale} decimals={0} />}
         />
         <StatCard
           label={t("netSavings")}
           accent="var(--brand)"
           icon={<PiggyBank className="h-4 w-4" />}
-          value={formatCurrency(net, locale, { decimals: 0 })}
+          value={<Money value={net} locale={locale} decimals={0} />}
         />
         <StatCard
           label={t("savingsRate")}
@@ -64,7 +65,7 @@ export function AnalyticsScreen() {
             <div>
               <CardTitle>{t("incomeVsExpense")}</CardTitle>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {t("monthlyAverage")}: {formatCurrency(avgExpense, locale, { decimals: 0, compact: true })}
+                {t("monthlyAverage")}: <Money value={avgExpense} locale={locale} compact />
               </p>
             </div>
             <div className="flex items-center gap-4 text-xs">
@@ -82,7 +83,7 @@ export function AnalyticsScreen() {
             <CashflowBars
               data={cashflow}
               height={260}
-              formatValue={(v) => formatCurrency(v, locale, { decimals: 0 })}
+              formatValue={(v) => <Money value={v} locale={locale} decimals={0} />}
               formatLabel={(tt) => formatDate(`${tt}-01`, locale, { month: "short" })}
             />
           </CardContent>
@@ -109,8 +110,8 @@ export function AnalyticsScreen() {
                     <span className="flex-1 truncate text-sm text-foreground">
                       {pick(cat.name, locale)}
                     </span>
-                    <span className="text-sm font-medium text-foreground tnum">
-                      {formatCurrency(s.amount, locale, { decimals: 0 })}
+                    <span className="text-sm font-medium text-foreground">
+                      <Money value={s.amount} locale={locale} decimals={0} />
                     </span>
                   </div>
                   <div className="mt-1.5 flex items-center gap-2 ps-9">

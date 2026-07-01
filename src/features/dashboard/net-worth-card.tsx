@@ -7,8 +7,9 @@ import { Card } from "@/components/ui/card";
 import { Segmented } from "@/components/ui/segmented";
 import { Delta } from "@/components/ui/trend";
 import { AreaChart } from "@/components/charts/area-chart";
+import { Money } from "@/components/ui/money";
 import { balanceHistory } from "@/data/finance";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 
 type Period = "quarter" | "halfYear" | "year" | "all";
 const windows: Record<Period, number> = { quarter: 3, halfYear: 6, year: 12, all: 12 };
@@ -39,8 +40,8 @@ export function NetWorthCard({ netWorth }: { netWorth: number }) {
             {t("netWorth")}
           </p>
           <div className="mt-1 flex items-center gap-3">
-            <span className="text-3xl font-semibold tracking-tight text-foreground tnum">
-              {formatCurrency(netWorth, locale, { decimals: 0 })}
+            <span className="text-3xl font-semibold tracking-tight text-foreground">
+              <Money value={netWorth} locale={locale} decimals={0} />
             </span>
             <Delta value={change} />
           </div>
@@ -62,7 +63,7 @@ export function NetWorthCard({ netWorth }: { netWorth: number }) {
         <AreaChart
           data={data}
           height={220}
-          formatValue={(v) => formatCurrency(v, locale, { decimals: 0 })}
+          formatValue={(v) => <Money value={v} locale={locale} decimals={0} />}
           formatLabel={(tt) =>
             formatDate(`${tt}-01`, locale, { month: "long", year: "numeric" })
           }

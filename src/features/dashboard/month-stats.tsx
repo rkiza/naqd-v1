@@ -5,8 +5,9 @@ import { ArrowDownLeft, ArrowUpRight, PiggyBank } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 import { StatCard } from "@/components/ui/stat-card";
 import { Delta } from "@/components/ui/trend";
+import { Money } from "@/components/ui/money";
 import { monthlyIncome, monthlySpend } from "@/data/finance";
-import { formatCurrency, formatPercent } from "@/lib/format";
+import { formatPercent } from "@/lib/format";
 
 export function MonthStats() {
   const locale = useLocale() as Locale;
@@ -21,14 +22,14 @@ export function MonthStats() {
         label={t("income")}
         accent="var(--positive)"
         icon={<ArrowDownLeft className="h-4 w-4" />}
-        value={formatCurrency(monthlyIncome, locale, { decimals: 0 })}
+        value={<Money value={monthlyIncome} locale={locale} decimals={0} />}
         footer={<span className="text-muted-foreground">{t("thisMonth")}</span>}
       />
       <StatCard
         label={t("expenses")}
         accent="var(--negative)"
         icon={<ArrowUpRight className="h-4 w-4" />}
-        value={formatCurrency(monthlySpend, locale, { decimals: 0 })}
+        value={<Money value={monthlySpend} locale={locale} decimals={0} />}
         footer={<Delta value={-7.8} withBackground={false} />}
       />
       <StatCard
@@ -37,8 +38,8 @@ export function MonthStats() {
         icon={<PiggyBank className="h-4 w-4" />}
         value={formatPercent(savingsRate, locale, { decimals: 0 })}
         footer={
-          <span className="text-muted-foreground">
-            {t("saved")} {formatCurrency(saved, locale, { decimals: 0, compact: true })}
+          <span className="inline-flex items-center gap-1 text-muted-foreground">
+            {t("saved")} <Money value={saved} locale={locale} compact />
           </span>
         }
       />
