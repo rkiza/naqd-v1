@@ -11,11 +11,11 @@ import {
   ArrowRight,
   ShieldCheck,
   Loader2,
-  KeyRound,
   Eye,
   EyeOff,
 } from "lucide-react";
 import { Link, useRouter } from "@/i18n/routing";
+import { OtpInput } from "@/features/auth/otp-input";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { LocaleSwitcher } from "@/components/layout/locale-switcher";
@@ -177,6 +177,26 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
         setMaskedEmail(data.maskedEmail);
         setStep("otp");
       } else if (loginMethod === "password") {
+        const res = await fetch("/api/auth/login/password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: form.email,
+            password: form.password,
+            locale,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error === "Invalid credentials" ? t("invalidCredentials") : data.error ?? t("errorGeneric"));
+
+        if (data.needsVerification) {
+          setChallengeId(data.challengeId);
+          setMaskedEmail(data.maskedEmail ?? "");
+          setOtp("");
+          setStep("otp");
+          return;
+        }
+
         const result = await signIn("password", {
           email: form.email,
           password: form.password,
@@ -206,10 +226,10 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
     }
   }
 
-  async function submitOtp(e: React.FormEvent) {
-    e.preventDefault();
+  async function verifyOtpCode(code: string) {
+    if (loading) return;
     setApiError("");
-    if (otp.length !== 6) {
+    if (code.length !== 6) {
       setErrors({ otp: t("invalidOtp") });
       return;
     }
@@ -217,7 +237,7 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
     try {
       const result = await signIn("otp", {
         challengeId,
-        code: otp,
+        code,
         redirect: false,
       });
       if (result?.error) throw new Error(t("invalidOtp"));
@@ -228,6 +248,11 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function submitOtp(e: React.FormEvent) {
+    e.preventDefault();
+    await verifyOtpCode(otp);
   }
 
   async function resendOtp() {
@@ -294,17 +319,16 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
                   {t("otpSentToEmail", { email: maskedEmail || form.email })}
                 </p>
                 <form onSubmit={submitOtp} className="mt-6 space-y-4" noValidate>
-                  <Field
-                    icon={<KeyRound className="h-4 w-4" />}
+                  <OtpInput
                     label={t("otpCode")}
-                    inputMode="numeric"
-                    maxLength={6}
-                    placeholder="000000"
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    onChange={(code) => {
+                      setOtp(code);
+                      if (errors.otp) setErrors((prev) => ({ ...prev, otp: "" }));
+                    }}
+                    onComplete={verifyOtpCode}
                     error={errors.otp}
-                    dir="ltr"
-                    autoComplete="one-time-code"
+                    disabled={loading}
                   />
                   {apiError && <p className="text-sm text-negative">{apiError}</p>}
                   <Button type="submit" size="lg" className="w-full" disabled={loading}>
