@@ -39,7 +39,7 @@ export function PaymentsScreen() {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       {/* Send money */}
-      <div className="space-y-6">
+      <div className="min-w-0 space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>{t("sendMoney")}</CardTitle>
@@ -49,12 +49,12 @@ export function PaymentsScreen() {
             <div className="rounded-2xl bg-surface-muted p-5 text-center">
               <p className="text-xs font-medium text-muted-foreground">{t("amount")}</p>
               <div className="mt-1 flex items-center justify-center gap-1" dir="ltr">
-                <RiyalGlyph className="h-[1.4rem] w-[1.4rem] text-muted-foreground" />
+                <RiyalGlyph className="h-[1.4rem] w-[1.4rem] shrink-0 text-muted-foreground" />
                 <input
                   inputMode="decimal"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ""))}
-                  className="w-40 bg-transparent text-center text-4xl font-semibold tracking-tight text-foreground tnum focus:outline-none"
+                  className="w-full max-w-44 min-w-0 bg-transparent text-center text-3xl font-semibold tracking-tight text-foreground tnum focus:outline-none sm:text-4xl"
                   aria-label={t("amount")}
                 />
               </div>
@@ -130,7 +130,7 @@ export function PaymentsScreen() {
       </div>
 
       {/* Bills */}
-      <Card className="self-start">
+      <Card className="min-w-0 self-start">
         <CardHeader>
           <div>
             <CardTitle>{t("upcomingBills")}</CardTitle>
@@ -155,7 +155,7 @@ export function PaymentsScreen() {
                 <p className="truncate text-sm font-medium text-foreground">
                   {pick(bill.biller, locale)}
                 </p>
-                <div className="mt-0.5 flex items-center gap-2">
+                <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span className="text-xs text-muted-foreground">
                     {t("dueOn", {
                       date: formatDate(bill.dueDate, locale, { day: "numeric", month: "short" }),
@@ -169,7 +169,7 @@ export function PaymentsScreen() {
                   )}
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-1.5">
+              <div className="flex shrink-0 flex-col items-end gap-1.5">
                 <span className="text-sm font-semibold text-foreground">
                   <Money value={bill.amount} locale={locale} decimals={0} />
                 </span>

@@ -47,7 +47,7 @@ export function Dialog({
             aria-modal="true"
             aria-label={title}
             className={cn(
-              "relative z-10 w-full rounded-t-3xl border border-border bg-card p-5 shadow-xl sm:max-w-md sm:rounded-3xl sm:p-6",
+              "relative z-10 max-h-[92dvh] w-full overflow-y-auto overscroll-contain rounded-t-3xl border border-border bg-card p-5 pb-[calc(1.25rem_+_env(safe-area-inset-bottom))] shadow-xl sm:max-h-[85dvh] sm:max-w-md sm:rounded-3xl sm:p-6 sm:pb-6",
               className,
             )}
             initial={{ y: 40, opacity: 0, scale: 0.98 }}
