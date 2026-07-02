@@ -12,6 +12,8 @@ import {
   ShieldCheck,
   Loader2,
   KeyRound,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Link, useRouter } from "@/i18n/routing";
 import { Logo } from "@/components/brand/logo";
@@ -30,12 +32,22 @@ function Field({
   icon,
   label,
   error,
+  passwordToggle,
+  showPasswordLabel,
+  hidePasswordLabel,
+  type,
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement> & {
   icon: React.ReactNode;
   label: string;
   error?: string;
+  passwordToggle?: boolean;
+  showPasswordLabel?: string;
+  hidePasswordLabel?: string;
 }) {
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const resolvedType = passwordToggle ? (passwordVisible ? "text" : "password") : type;
+
   return (
     <label className="block">
       <span className="mb-1.5 block text-sm font-medium text-foreground">{label}</span>
@@ -45,8 +57,19 @@ function Field({
         </span>
         <input
           {...props}
-          className="h-12 w-full rounded-xl border border-border bg-surface ps-11 pe-4 text-sm text-foreground placeholder:text-subtle-foreground focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          type={resolvedType}
+          className={`h-12 w-full rounded-xl border border-border bg-surface ps-11 text-sm text-foreground placeholder:text-subtle-foreground focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${passwordToggle ? "pe-11" : "pe-4"}`}
         />
+        {passwordToggle && (
+          <button
+            type="button"
+            onClick={() => setPasswordVisible((v) => !v)}
+            className="absolute inset-y-0 end-3 flex items-center text-muted-foreground transition-colors hover:text-foreground"
+            aria-label={passwordVisible ? hidePasswordLabel : showPasswordLabel}
+          >
+            {passwordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        )}
       </span>
       {error && <span className="mt-1 block text-xs text-negative">{error}</span>}
     </label>
@@ -431,10 +454,11 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
                       icon={<Phone className="h-4 w-4" />}
                       label={t("phone")}
                       dir="ltr"
-                      inputMode="tel"
+                      inputMode="numeric"
+                      maxLength={11}
                       placeholder={t("phonePlaceholder")}
                       value={form.phone}
-                      onChange={(e) => set("phone", e.target.value)}
+                      onChange={(e) => set("phone", e.target.value.replace(/\D/g, "").slice(0, 11))}
                       autoComplete="tel"
                     />
                   )}
@@ -444,6 +468,9 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
                       icon={<Lock className="h-4 w-4" />}
                       label={t("password")}
                       type="password"
+                      passwordToggle
+                      showPasswordLabel={t("showPassword")}
+                      hidePasswordLabel={t("hidePassword")}
                       placeholder={t("passwordPlaceholder")}
                       value={form.password}
                       onChange={(e) => set("password", e.target.value)}
