@@ -201,9 +201,6 @@
     "invalidCredentials": "البريد أو كلمة المرور غير صحيحة",
     "errorGeneric": "حدث خطأ. حاول مرة أخرى.",
     "oauthError": "تعذّر تسجيل الدخول عبر هذا المزوّد",
-    "demoTitle": "حساب تجريبي",
-    "demoHint": "بيانات مالية تجريبية جاهزة — اضغط لملء النموذج.",
-    "demoUse": "استخدام الحساب التجريبي",
     "demoEmail": "fahad@naqd.sa",
     "demoPassword": "demo1234"
   },

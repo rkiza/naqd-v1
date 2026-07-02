@@ -108,7 +108,13 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
 
   const [step, setStep] = useState<Step>("form");
   const [loginMethod, setLoginMethod] = useState<LoginMethod>("password");
-  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", identifier: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: isRegister ? "" : DEMO_EMAIL,
+    phone: "",
+    password: isRegister ? "" : DEMO_PASSWORD,
+    identifier: "",
+  });
   const [otp, setOtp] = useState("");
   const [challengeId, setChallengeId] = useState("");
   const [maskedEmail, setMaskedEmail] = useState("");
@@ -118,13 +124,6 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
 
   function set(k: string, v: string) {
     setForm((f) => ({ ...f, [k]: v }));
-  }
-
-  function fillDemoCredentials() {
-    setLoginMethod("password");
-    setForm((f) => ({ ...f, email: DEMO_EMAIL, password: DEMO_PASSWORD }));
-    setErrors({});
-    setApiError("");
   }
 
   async function handleSocial(provider: "google" | "apple") {
@@ -338,31 +337,6 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
                   {isRegister ? t("registerSubtitle") : t("loginSubtitle")}
                 </p>
 
-                {!isRegister && (
-                  <div className="mt-5 rounded-2xl border border-dashed border-primary/30 bg-brand-soft/40 p-4">
-                    <p className="text-sm font-semibold text-foreground">{t("demoTitle")}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{t("demoHint")}</p>
-                    <dl className="mt-3 space-y-1.5 text-xs" dir="ltr">
-                      <div className="flex items-center justify-between gap-3 rounded-lg bg-surface/80 px-3 py-2">
-                        <dt className="text-subtle-foreground">{t("email")}</dt>
-                        <dd className="font-mono font-medium text-foreground">{t("demoEmail")}</dd>
-                      </div>
-                      <div className="flex items-center justify-between gap-3 rounded-lg bg-surface/80 px-3 py-2">
-                        <dt className="text-subtle-foreground">{t("password")}</dt>
-                        <dd className="font-mono font-medium text-foreground">{t("demoPassword")}</dd>
-                      </div>
-                    </dl>
-                    <button
-                      type="button"
-                      onClick={fillDemoCredentials}
-                      disabled={loading}
-                      className="mt-3 w-full rounded-xl border border-border bg-surface py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary hover:bg-card disabled:opacity-50"
-                    >
-                      {t("demoUse")}
-                    </button>
-                  </div>
-                )}
-
                 <div className="mt-6 flex gap-3">
                   <SocialButton
                     label={t("continueApple")}
@@ -441,7 +415,7 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
                       label={t("email")}
                       type="email"
                       dir="ltr"
-                      placeholder={t("emailPlaceholder")}
+                      placeholder={isRegister ? t("emailPlaceholder") : t("demoEmail")}
                       value={form.email}
                       onChange={(e) => set("email", e.target.value)}
                       error={errors.email}
@@ -471,7 +445,7 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
                       passwordToggle
                       showPasswordLabel={t("showPassword")}
                       hidePasswordLabel={t("hidePassword")}
-                      placeholder={t("passwordPlaceholder")}
+                      placeholder={isRegister ? t("passwordPlaceholder") : t("demoPassword")}
                       value={form.password}
                       onChange={(e) => set("password", e.target.value)}
                       error={errors.password}
