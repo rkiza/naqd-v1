@@ -177,7 +177,7 @@ export function AssistantScreen() {
   const lastIndex = messages.length - 1;
 
   return (
-    <div className="relative flex h-[calc(100dvh-10rem)] overflow-hidden rounded-3xl border border-border bg-card shadow-xs">
+    <div className="relative -mx-4 -my-6 flex h-[calc(100dvh-4rem-env(safe-area-inset-top))] overflow-hidden bg-card sm:mx-0 sm:my-0 sm:h-[calc(100dvh-10rem)] sm:rounded-3xl sm:border sm:border-border sm:shadow-xs">
       {/* Sidebar — desktop */}
       <ConversationSidebar
         className="hidden w-64 shrink-0 border-e border-border lg:flex"
@@ -365,7 +365,7 @@ export function AssistantScreen() {
         </div>
 
         {/* Composer */}
-        <div className="border-t border-border bg-surface/60 p-3 sm:p-4">
+        <div className="border-t border-border bg-surface/60 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:p-4 sm:pb-4">
           <form
             onSubmit={(e) => {
               e.preventDefault();
