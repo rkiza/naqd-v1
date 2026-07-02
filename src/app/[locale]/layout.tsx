@@ -19,9 +19,12 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  // Extend the app under the device safe areas (notch / status bar) so we can
+  // paint them ourselves — see the safe-area padding on the sticky topbar.
+  viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f7f6" },
-    { media: "(prefers-color-scheme: dark)", color: "#07090a" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0e1213" },
   ],
 };
 

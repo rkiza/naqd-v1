@@ -45,7 +45,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               onClick={() => setDrawerOpen(false)}
             />
             <motion.div
-              className="fixed inset-y-0 start-0 z-50 flex w-[18rem] flex-col gap-6 border-e border-border bg-background px-4 pb-5 pt-6 lg:hidden"
+              className="fixed inset-y-0 start-0 z-50 flex w-[18rem] flex-col gap-6 border-e border-border bg-background px-4 pb-5 pt-[calc(1.5rem_+_env(safe-area-inset-top))] lg:hidden"
               initial={{ x: rtl ? "100%" : "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: rtl ? "100%" : "-100%" }}

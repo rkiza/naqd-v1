@@ -7,7 +7,8 @@
     "node": "20.x"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -H 0.0.0.0",
+    "dev:local": "next dev",
     "build": "next build",
     "postinstall": "prisma generate",
     "start": "next start",

@@ -39,7 +39,8 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   );
 
   return (
-    <header className="glass sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border px-4 sm:px-6">
+    <header className="glass sticky top-0 z-30 border-b border-border pt-[env(safe-area-inset-top)]">
+      <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
       <button
         type="button"
         onClick={onMenuClick}
@@ -104,6 +105,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
             </DropdownItem>
           </DropdownContent>
         </Dropdown>
+      </div>
       </div>
     </header>
   );

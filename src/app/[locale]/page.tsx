@@ -10,6 +10,7 @@ import { CardVisual } from "@/components/finance/card-visual";
 import { Sparkline } from "@/components/charts/sparkline";
 import ColorBends from "@/components/react-bits/color-bends";
 import { MarketsTicker } from "@/features/landing/markets-ticker";
+import { LandingMobileMenu } from "@/features/landing/mobile-menu";
 import { BrowserFrame, PhoneFrame } from "@/features/landing/mockups";
 import { SloganSection } from "@/features/landing/slogan-section";
 import { SiteFooter } from "@/features/landing/site-footer";
@@ -51,7 +52,7 @@ export default async function LandingPage({
 
         <div className="relative mx-auto w-full max-w-[1180px] px-5 sm:px-8">
           {/* Header */}
-          <header className="flex h-20 items-center justify-between">
+          <header className="flex h-20 items-center justify-between pt-[env(safe-area-inset-top)]">
             <Logo className="[&_span]:text-white" />
             <nav className="hidden items-center gap-7 text-sm font-medium text-white/70 md:flex">
               <a href="#preview" className="hover:text-white">{t("navFeatures")}</a>
@@ -60,9 +61,10 @@ export default async function LandingPage({
             <div className="flex items-center gap-2">
               <LocaleSwitcher compact />
               <ThemeSwitcher />
-              <Button asChild size="sm" variant="secondary" className="hidden bg-white text-[#06140a] hover:bg-white/90 sm:inline-flex">
+              <Button asChild size="sm" variant="secondary" className="hidden bg-white text-[#06140a] hover:bg-white/90 md:inline-flex">
                 <Link href="/login">{t("signIn")}</Link>
               </Button>
+              <LandingMobileMenu />
             </div>
           </header>
 

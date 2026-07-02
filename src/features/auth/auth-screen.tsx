@@ -305,7 +305,7 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
       </div>
 
       <div className="relative flex flex-col">
-        <div className="flex items-center justify-between p-5 sm:p-6">
+        <div className="flex items-center justify-between p-5 pt-[calc(1.25rem_+_env(safe-area-inset-top))] sm:p-6 sm:pt-[calc(1.5rem_+_env(safe-area-inset-top))]">
           <Link href="/" className="lg:hidden">
             <Logo />
           </Link>
