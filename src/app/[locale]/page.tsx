@@ -19,6 +19,7 @@ import { Sparkline } from "@/components/charts/sparkline";
 import ColorBends from "@/components/react-bits/color-bends";
 import { MarketsTicker } from "@/features/landing/markets-ticker";
 import { BrowserFrame, PhoneFrame } from "@/features/landing/mockups";
+import { SiteFooter } from "@/features/landing/site-footer";
 import { card } from "@/data/finance";
 import { formatPercent } from "@/lib/format";
 import { Money } from "@/components/ui/money";
@@ -286,11 +287,9 @@ export default async function LandingPage({
           </div>
         </section>
 
-        <footer className="flex flex-col items-center gap-4 border-t border-border py-8 text-center sm:flex-row sm:justify-between sm:text-start">
-          <Logo />
-          <p className="text-xs text-muted-foreground">{t("footer")}</p>
-        </footer>
       </div>
+
+      <SiteFooter />
     </div>
   );
 }
