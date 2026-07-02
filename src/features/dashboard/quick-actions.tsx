@@ -10,7 +10,7 @@ export function QuickActions() {
   const actions: { icon: LucideIcon; label: string; href: string }[] = [
     { icon: Send, label: t("send"), href: "/payments" },
     { icon: Plus, label: t("topUp"), href: "/wallet" },
-    { icon: TrendingUp, label: t("invest"), href: "/investment" },
+    { icon: TrendingUp, label: t("invest"), href: "/markets" },
     { icon: ReceiptText, label: t("payBill"), href: "/payments" },
   ];
 

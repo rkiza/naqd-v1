@@ -11,6 +11,7 @@ import { Sparkline } from "@/components/charts/sparkline";
 import ColorBends from "@/components/react-bits/color-bends";
 import { MarketsTicker } from "@/features/landing/markets-ticker";
 import { BrowserFrame, PhoneFrame } from "@/features/landing/mockups";
+import { SloganSection } from "@/features/landing/slogan-section";
 import { SiteFooter } from "@/features/landing/site-footer";
 import { card } from "@/data/finance";
 import { formatPercent } from "@/lib/format";
@@ -147,6 +148,9 @@ export default async function LandingPage({
       </section>
 
       <div className="mx-auto w-full max-w-[1180px] px-5 sm:px-8">
+        {/* ── Slogan (three worlds → one place) ──────────────────── */}
+        <SloganSection />
+
         {/* ── Product preview ───────────────────────────────────── */}
         <section id="preview" className="py-20 text-center lg:py-28">
           <span className="text-xs font-semibold uppercase tracking-wider text-primary-strong">

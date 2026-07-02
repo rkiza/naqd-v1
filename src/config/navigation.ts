@@ -5,7 +5,6 @@ import {
   CreditCard,
   Send,
   PieChart,
-  TrendingUp,
   ChartLine,
   CandlestickChart,
   Lightbulb,
@@ -47,7 +46,6 @@ export const navGroups: NavGroup[] = [
     items: [
       { href: "/portfolio", key: "portfolio", icon: PieChart },
       { href: "/markets", key: "markets", icon: CandlestickChart },
-      { href: "/investment", key: "investment", icon: TrendingUp },
       { href: "/analytics", key: "analytics", icon: ChartLine },
       { href: "/insights", key: "insights", icon: Lightbulb },
     ],
