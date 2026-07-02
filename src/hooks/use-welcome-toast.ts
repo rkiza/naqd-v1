@@ -9,10 +9,11 @@ export function useWelcomeToast() {
   const t = useTranslations("auth");
 
   useEffect(() => {
-    if (!consumeWelcomeToast()) return;
+    const message = consumeWelcomeToast();
+    if (message === false) return;
 
     const frame = requestAnimationFrame(() => {
-      showWelcomeToast(t("welcomeBack"));
+      showWelcomeToast(message || t("welcomeBack"));
     });
 
     return () => cancelAnimationFrame(frame);

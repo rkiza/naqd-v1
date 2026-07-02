@@ -203,7 +203,8 @@
     "oauthError": "Could not sign in with this provider",
     "demoEmail": "fahad@naqd.sa",
     "demoPassword": "demo1234",
-    "welcomeBack": "Welcome back"
+    "welcomeBack": "Welcome back",
+    "verificationSuccess": "Email verified successfully"
   },
   "topbar": {
     "searchPlaceholder": "Search…",
@@ -461,8 +462,16 @@
     "subtitle": "Stay on top of every movement.",
     "markAllRead": "Mark all as read",
     "unread": "{count} unread",
+    "unreadHint": "Tap a notification to mark it as read.",
+    "caughtUpTitle": "You're all caught up",
+    "caughtUpBody": "No unread notifications right now.",
     "allRead": "You're all caught up",
     "empty": "No notifications yet",
+    "emptyHint": "We'll notify you about transactions, security, and insights here.",
+    "groupToday": "Today",
+    "groupYesterday": "Yesterday",
+    "groupThisWeek": "This week",
+    "groupEarlier": "Earlier",
     "typeTransaction": "Transaction",
     "typeSecurity": "Security",
     "typeInvestment": "Investment",

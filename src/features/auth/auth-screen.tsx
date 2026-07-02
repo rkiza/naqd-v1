@@ -25,6 +25,7 @@ import { markWelcomeToast } from "@/lib/auth/welcome-toast";
 
 type Step = "form" | "otp";
 type LoginMethod = "password" | "otp";
+type OtpPurpose = "verify" | "login";
 
 const DEMO_EMAIL = "fahad@naqd.sa";
 const DEMO_PASSWORD = "demo1234";
@@ -117,6 +118,7 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
     identifier: "",
   });
   const [otp, setOtp] = useState("");
+  const [otpPurpose, setOtpPurpose] = useState<OtpPurpose>("verify");
   const [challengeId, setChallengeId] = useState("");
   const [maskedEmail, setMaskedEmail] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -175,6 +177,7 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
         if (!res.ok) throw new Error(data.error ?? t("errorGeneric"));
         setChallengeId(data.challengeId);
         setMaskedEmail(data.maskedEmail);
+        setOtpPurpose("verify");
         setStep("otp");
       } else if (loginMethod === "password") {
         const res = await fetch("/api/auth/login/password", {
@@ -193,6 +196,7 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
           setChallengeId(data.challengeId);
           setMaskedEmail(data.maskedEmail ?? "");
           setOtp("");
+          setOtpPurpose("verify");
           setStep("otp");
           return;
         }
@@ -216,6 +220,7 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
         if (data.challengeId) {
           setChallengeId(data.challengeId);
           setMaskedEmail(data.maskedEmail ?? "");
+          setOtpPurpose("login");
           setStep("otp");
         }
       }
@@ -241,7 +246,7 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
         redirect: false,
       });
       if (result?.error) throw new Error(t("invalidOtp"));
-      markWelcomeToast();
+      markWelcomeToast(t(otpPurpose === "login" ? "welcomeBack" : "verificationSuccess"));
       router.push("/dashboard");
     } catch (err) {
       setApiError(err instanceof Error ? err.message : t("invalidOtp"));

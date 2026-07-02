@@ -203,7 +203,8 @@
     "oauthError": "تعذّر تسجيل الدخول عبر هذا المزوّد",
     "demoEmail": "fahad@naqd.sa",
     "demoPassword": "demo1234",
-    "welcomeBack": "مرحبًا بعودتك"
+    "welcomeBack": "مرحبًا بعودتك",
+    "verificationSuccess": "تم التحقق من البريد بنجاح"
   },
   "topbar": {
     "searchPlaceholder": "بحث…",
@@ -461,8 +462,16 @@
     "subtitle": "كن على اطلاع بكل حركة.",
     "markAllRead": "تعليم الكل كمقروء",
     "unread": "{count} غير مقروء",
+    "unreadHint": "اضغط على الإشعار لتعليمه كمقروء.",
+    "caughtUpTitle": "اطّلعت على كل شيء",
+    "caughtUpBody": "لا توجد إشعارات غير مقروءة الآن.",
     "allRead": "اطّلعت على كل شيء",
     "empty": "لا توجد إشعارات بعد",
+    "emptyHint": "سنُعلمك هنا بالعمليات والأمان والرؤى.",
+    "groupToday": "اليوم",
+    "groupYesterday": "أمس",
+    "groupThisWeek": "هذا الأسبوع",
+    "groupEarlier": "سابقًا",
     "typeTransaction": "عملية",
     "typeSecurity": "أمان",
     "typeInvestment": "استثمار",
