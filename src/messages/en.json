@@ -494,7 +494,11 @@
     "newChat": "New chat",
     "you": "You",
     "offlineNote": "Showing a demo response.",
-    "errorNote": "Something went wrong. Please try again."
+    "errorNote": "Something went wrong. Please try again.",
+    "stop": "Stop",
+    "copy": "Copy",
+    "copied": "Copied",
+    "analyzing": "Analyzing your finances…"
   },
   "notifications": {
     "title": "Notifications",

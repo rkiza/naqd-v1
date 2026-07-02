@@ -108,16 +108,23 @@ export function MarketsScreen() {
               key={m.id}
               onClick={() => setMarket(m.id)}
               className={cn(
-                "flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all",
-                active
-                  ? "bg-foreground text-background shadow-sm"
-                  : "text-muted-foreground hover:bg-accent",
+                "relative flex flex-1 items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors",
+                active ? "text-background" : "text-muted-foreground hover:bg-accent",
               )}
             >
-              <span className="text-base leading-none">{m.flag}</span>
-              <span>{pick(m.label, locale)}</span>
-              <span className={cn("text-xs font-normal", active ? "text-background/70" : "text-subtle-foreground")}>
-                {pick(m.index, locale)}
+              {active && (
+                <motion.span
+                  layoutId="market-active"
+                  className="absolute inset-0 rounded-xl bg-foreground shadow-sm"
+                  transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                />
+              )}
+              <span className="relative z-10 flex items-center gap-2">
+                <span className="text-base leading-none">{m.flag}</span>
+                <span>{pick(m.label, locale)}</span>
+                <span className={cn("text-xs font-normal", active ? "text-background/70" : "text-subtle-foreground")}>
+                  {pick(m.index, locale)}
+                </span>
               </span>
             </button>
           );
@@ -127,6 +134,12 @@ export function MarketsScreen() {
       {/* Index hero + stats */}
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="p-5 sm:p-6 lg:col-span-2">
+          <motion.div
+            key={market}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          >
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2">
@@ -157,6 +170,7 @@ export function MarketsScreen() {
               formatValue={(v) => formatNumber(v, locale, { maximumFractionDigits: 0 })}
             />
           </div>
+          </motion.div>
         </Card>
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-1">

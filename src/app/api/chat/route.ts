@@ -21,7 +21,7 @@ function streamScripted(text: string, note?: string): Response {
       const tokens = text.split(/(\s+)/);
       for (const tok of tokens) {
         controller.enqueue(encoder.encode(tok));
-        await new Promise((r) => setTimeout(r, 16));
+        await new Promise((r) => setTimeout(r, 8));
       }
       controller.close();
     },
@@ -40,7 +40,7 @@ async function streamScriptedFallback(
   const tokens = fallback.split(/(\s+)/);
   for (const tok of tokens) {
     controller.enqueue(encoder.encode(tok));
-    await new Promise((r) => setTimeout(r, 16));
+    await new Promise((r) => setTimeout(r, 8));
   }
   controller.close();
 }
@@ -70,7 +70,8 @@ async function streamOpenRouterModel(
     headers: openRouterHeaders(apiKey),
     body: JSON.stringify({
       model,
-      max_tokens: 700,
+      max_tokens: 800,
+      temperature: 0.5,
       stream: true,
       messages: [
         { role: "system", content: system },
