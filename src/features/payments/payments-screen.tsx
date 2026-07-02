@@ -1,9 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
-import { Send, Plus, Star, Zap, Check } from "lucide-react";
+import { Send, Plus, Star, Zap } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
+import { AnimatedCheck } from "@/components/ui/animated-check";
+import { CountUpMoney } from "@/components/ui/count-up-money";
+import { Confetti } from "@/components/ui/confetti";
 import type { Locale } from "@/i18n/routing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +15,10 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { DynamicIcon } from "@/components/ui/dynamic-icon";
 import { useFinance } from "@/components/finance/finance-provider";
+import { BeneficiaryDetailPanel } from "@/components/finance/beneficiary-detail-panel";
+import { BillDetailPanel } from "@/components/finance/bill-detail-panel";
 import { categories } from "@/data/categories";
+import type { Beneficiary, Bill } from "@/data/types";
 import { pick } from "@/lib/localized";
 import { formatDate } from "@/lib/format";
 import { Money } from "@/components/ui/money";
@@ -28,10 +35,26 @@ export function PaymentsScreen() {
   const [amount, setAmount] = useState("500");
   const [selected, setSelected] = useState(beneficiaries[0]?.id ?? "");
   const [sent, setSent] = useState(false);
+  const [sendPhase, setSendPhase] = useState<"processing" | "done">("processing");
+  const [sentAmount, setSentAmount] = useState(0);
+  const [sentTo, setSentTo] = useState("");
+  const [detailBeneficiary, setDetailBeneficiary] = useState<Beneficiary | null>(null);
+  const [detailBill, setDetailBill] = useState<Bill | null>(null);
 
   const recipient = beneficiaries.find((b) => b.id === selected);
 
   const numericAmount = Number(amount) || 0;
+
+  async function handleSend() {
+    if (numericAmount <= 0) return;
+    setSentAmount(numericAmount);
+    setSentTo(recipient ? pick(recipient.name, locale) : "");
+    setSendPhase("processing");
+    setSent(true);
+    // Brief simulated settlement delay before the result resolves.
+    await new Promise((r) => setTimeout(r, 1500));
+    setSendPhase("done");
+  }
   const billsTotal = bills
     .filter((b) => b.status !== "paid")
     .reduce((s, b) => s + b.amount, 0);
@@ -94,7 +117,7 @@ export function PaymentsScreen() {
               className="w-full"
               size="lg"
               disabled={numericAmount <= 0}
-              onClick={() => setSent(true)}
+              onClick={handleSend}
             >
               <Send className="h-4 w-4 rtl-flip" />
               <span className="inline-flex items-center gap-1.5">
@@ -112,7 +135,12 @@ export function PaymentsScreen() {
           </CardHeader>
           <CardContent className="space-y-1">
             {beneficiaries.map((b) => (
-              <div key={b.id} className="flex items-center gap-3 rounded-xl px-2 py-2.5 hover:bg-surface-muted">
+              <button
+                key={b.id}
+                type="button"
+                onClick={() => setDetailBeneficiary(b)}
+                className="flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-start transition-colors hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              >
                 <Avatar name={pick(b.name, locale)} size="sm" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-foreground">
@@ -122,8 +150,8 @@ export function PaymentsScreen() {
                     {pick(b.bank, locale)} · <span className="tnum" dir="ltr">{b.iban}</span>
                   </p>
                 </div>
-                {b.favorite && <Star className="h-4 w-4 fill-warning text-warning" />}
-              </div>
+                {b.favorite && <Star className="h-4 w-4 shrink-0 fill-warning text-warning" />}
+              </button>
             ))}
           </CardContent>
         </Card>
@@ -146,7 +174,16 @@ export function PaymentsScreen() {
           {bills.map((bill) => (
             <div
               key={bill.id}
-              className="flex items-center gap-3 rounded-2xl border border-border p-3"
+              role="button"
+              tabIndex={0}
+              onClick={() => setDetailBill(bill)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setDetailBill(bill);
+                }
+              }}
+              className="flex cursor-pointer items-center gap-3 rounded-2xl border border-border p-3 transition-colors hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent text-foreground">
                 <DynamicIcon name={categories[bill.category].icon} className="h-[1.1rem] w-[1.1rem]" />
@@ -174,7 +211,15 @@ export function PaymentsScreen() {
                   <Money value={bill.amount} locale={locale} decimals={0} />
                 </span>
                 {bill.status === "due" ? (
-                  <Button size="sm" variant="primary" className="h-7 px-3 text-xs">
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    className="h-7 px-3 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDetailBill(bill);
+                    }}
+                  >
                     {t("payNow")}
                   </Button>
                 ) : (
@@ -188,23 +233,63 @@ export function PaymentsScreen() {
         </CardContent>
       </Card>
 
-      {/* Success confirmation */}
+      {/* Send money — processing → animated success */}
       <Dialog open={sent} onClose={() => setSent(false)} title={t("sendMoney")}>
-        <div className="flex flex-col items-center gap-3 py-6 text-center">
-          <span className="grid h-16 w-16 place-items-center rounded-full bg-positive-soft text-positive">
-            <Check className="h-8 w-8" strokeWidth={2.5} />
-          </span>
-          <p className="text-lg font-semibold text-foreground">
-            <Money value={numericAmount} locale={locale} decimals={2} />
-          </p>
-          <p className="max-w-xs text-sm text-muted-foreground">
-            {t("send", { amount: "" }).trim()} · {recipient ? pick(recipient.name, locale) : ""}
-          </p>
-          <Button className="mt-2 w-full" onClick={() => setSent(false)}>
-            {tc("done")}
-          </Button>
-        </div>
+        {sendPhase === "processing" ? (
+          <div className="flex flex-col items-center gap-5 py-8 text-center">
+            <div className="grid h-20 w-20 place-items-center">
+              <span className="block h-11 w-11 animate-spin rounded-full border-[3px] border-primary/15 border-t-primary" />
+            </div>
+            <p className="text-lg font-semibold text-foreground">{t("sending")}</p>
+            <p className="text-3xl font-semibold tracking-tight text-foreground/70">
+              <Money value={sentAmount} locale={locale} decimals={2} />
+            </p>
+          </div>
+        ) : (
+          <div className="relative flex flex-col items-center gap-3 py-6 text-center">
+            <Confetti />
+            <motion.span
+              className="grid h-16 w-16 place-items-center rounded-full bg-positive-soft text-positive"
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 360, damping: 18 }}
+            >
+              <span className="h-8 w-8">
+                <AnimatedCheck />
+              </span>
+            </motion.span>
+            <p className="text-lg font-semibold text-foreground">{t("moneySent")}</p>
+            <p className="max-w-xs text-sm text-muted-foreground">
+              {t("sentTo", { name: sentTo })}
+            </p>
+            <p className="text-3xl font-semibold tracking-tight text-foreground">
+              <CountUpMoney from={0} to={sentAmount} locale={locale} decimals={2} duration={0.9} />
+            </p>
+            <Button className="mt-2 w-full" onClick={() => setSent(false)}>
+              {tc("done")}
+            </Button>
+          </div>
+        )}
       </Dialog>
+
+      {/* Detail panels */}
+      <BeneficiaryDetailPanel
+        beneficiary={detailBeneficiary}
+        open={detailBeneficiary !== null}
+        onClose={() => setDetailBeneficiary(null)}
+        onSend={(id) => {
+          setSelected(id);
+          setDetailBeneficiary(null);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      />
+
+      <BillDetailPanel
+        bill={detailBill}
+        open={detailBill !== null}
+        onClose={() => setDetailBill(null)}
+        onPay={() => setDetailBill(null)}
+      />
     </div>
   );
 }

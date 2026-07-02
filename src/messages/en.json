@@ -334,7 +334,16 @@
     "billsDueTotal": "Due this week",
     "iban": "IBAN",
     "note": "Note (optional)",
-    "notePlaceholder": "What's this for?"
+    "notePlaceholder": "What's this for?",
+    "bank": "Bank",
+    "favorite": "Favorite",
+    "category": "Category",
+    "dueDate": "Due date",
+    "on": "On",
+    "off": "Off",
+    "sending": "Sending…",
+    "moneySent": "Money sent",
+    "sentTo": "Sent to {name}"
   },
   "card": {
     "title": "Virtual Card",
