@@ -36,7 +36,8 @@ function MockupImage({
   if (status === "ok") {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt={alt} dir={dir} className="block h-auto w-full" />
+      // -mb-0.5 crops ~2px off the bottom (clipped by the frame's overflow-hidden).
+      <img src={src} alt={alt} dir={dir} className="-mb-0.5 block h-auto w-full" />
     );
   }
 
