@@ -1,5 +1,5 @@
 /**
- * Curated bilingual fallback responses for when no ANTHROPIC_API_KEY is set —
+ * Curated bilingual fallback responses for when no OPENROUTER_API_KEY is set —
  * so the assistant always works in a demo, offline. Keyed by simple intent
  * detection over the user's message.
  */

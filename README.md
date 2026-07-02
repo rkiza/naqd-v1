@@ -33,7 +33,7 @@ number, date, and chart adapts instantly between Arabic and English.
   filters, and one‑tap buy/sell that actually updates your holdings and cash.
 - 🤖 **An AI assistant that knows your money** — ask about your spending, budgets,
   or whether you can afford something, and get clear answers in your language
-  (powered by Claude, with a graceful offline fallback).
+  (powered by OpenRouter, with a graceful offline fallback).
 - 💳 **A digital card, Apple‑Wallet style** — a stacked, tappable wallet with
   freeze, reveal details, spending controls, and Apple Pay.
 - 📊 **Rich analytics & insights** — cash‑flow, spending breakdowns, net‑worth
@@ -65,17 +65,17 @@ npm run dev        # open http://localhost:3000  (redirects to /en)
 Then visit **`/ar`** for the Arabic, right‑to‑left experience — or just tap the
 language switch in the app.
 
-To enable the **live** AI assistant, add an Anthropic API key (optional — the
+To enable the **live** AI assistant, add an OpenRouter API key (optional — the
 assistant works with curated responses without it):
 
 ```bash
-cp .env.example .env.local   # then set ANTHROPIC_API_KEY
+cp .env.example .env.local   # then set OPENROUTER_API_KEY
 ```
 
 ## Built with
 
 **Next.js 15** (App Router) · **React 19** · **TypeScript** · **Tailwind CSS v4** ·
-**next‑intl** (i18n) · custom **SVG charts** · **WebGL** backgrounds · **Claude API**.
+**next‑intl** (i18n) · custom **SVG charts** · **WebGL** backgrounds · **OpenRouter API**.
 
 ---
 
