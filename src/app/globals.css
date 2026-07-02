@@ -294,6 +294,21 @@
   [dir="rtl"] .rtl-flip {
     transform: scaleX(-1);
   }
+
+  /* Sonner: center toasts in the main app column when the sidebar is visible. */
+  @media (min-width: 1024px) {
+    [dir="ltr"] [data-sonner-toaster][data-x-position="center"] {
+      left: calc(17rem + (100vw - 17rem) / 2);
+      right: auto;
+      transform: translateX(-50%);
+    }
+
+    [dir="rtl"] [data-sonner-toaster][data-x-position="center"] {
+      right: calc(17rem + (100vw - 17rem) / 2);
+      left: auto;
+      transform: translateX(50%);
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
