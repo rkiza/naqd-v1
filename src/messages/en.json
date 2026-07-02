@@ -198,7 +198,12 @@
     "invalidOtp": "Invalid or expired code",
     "invalidCredentials": "Invalid email or password",
     "errorGeneric": "Something went wrong. Please try again.",
-    "oauthError": "Could not sign in with this provider"
+    "oauthError": "Could not sign in with this provider",
+    "demoTitle": "Demo account",
+    "demoHint": "Pre-loaded with sample finances — tap to fill the form.",
+    "demoUse": "Use demo login",
+    "demoEmail": "fahad@naqd.sa",
+    "demoPassword": "demo1234"
   },
   "topbar": {
     "searchPlaceholder": "Search…",
