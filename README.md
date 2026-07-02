@@ -2,84 +2,83 @@
 
 # naqd · نقد
 
-**A premium, fully bilingual Saudi fintech experience.**
+### The smartest way to spend, save, and grow your money — built for Saudi Arabia.
 
-Spending · Investing · Payments · An AI money assistant — in Arabic (RTL) and English (LTR).
+**Open banking, a digital wallet, and the stock market — together in one place.**
+Fully bilingual (العربية / English), native right‑to‑left, and beautifully designed.
+
+<br/>
+
+<img src="./public/mockups/dashboard.png" alt="naqd dashboard" width="820"/>
 
 </div>
 
 ---
 
-## Highlights
+## What is naqd?
 
-- **Truly bilingual** — Arabic (RTL) + English (LTR), switchable instantly from the UI. Every visible string flows through [`next-intl`](https://next-intl.dev); zero hardcoded copy. Identical 364-key catalogs (`src/messages/{en,ar}.json`).
-- **Native RTL** — logical-property layout (`ms`/`me`/`ps`/`pe`), mirrored navigation, drawer, switches, and charts. Icons mirror where meaningful (`.rtl-flip`).
-- **Premium typography** — [Geist](https://vercel.com/font) for English, **IBM Plex Sans Arabic** for Arabic, wired via `next/font`.
-- **Locale-aware everything** — numbers, currency (SAR), percentages, and dates all reformat per locale, including Arabic-Indic digits. See `src/lib/format.ts`.
-- **Light & dark** — light is the default; dark mode is fully wired through the same CSS-variable token system (`next-themes`, class strategy).
-- **Custom charts** — dependency-free, animated SVG area/line, grouped bars, donut, and sparkline that adapt to RTL and locale formatting (`src/components/charts`).
-- **Real AI assistant** — streams from the **Claude API** (`/api/chat`), grounded in the user's live financial snapshot, replying in the active language. Falls back to curated bilingual responses when no API key is present, so it always works in a demo.
-- **Production-ready architecture** — feature-based folders, typed centralized demo data, reusable UI + business components, centralized constants and translations.
+naqd is a premium Saudi fintech experience that brings your everyday money, your
+investments, and an AI money assistant into a single, elegant app. It feels less
+like a prototype and more like a product getting ready to launch — every screen,
+number, date, and chart adapts instantly between Arabic and English.
 
-## Screens
+## Highlights for reviewers
 
-Dashboard · Wallet · Transactions · Payments · Virtual Card · Portfolio · Investment · Analytics · Insights · AI Assistant · Notifications · Settings — plus a marketing landing page.
+- 🌍 **Truly bilingual, truly RTL** — switch between **العربية** and **English**
+  instantly from anywhere. Layout mirrors, Arabic uses native Arabic‑Indic
+  numerals, and typography is tuned per language. Not a translation — it feels
+  native in both.
+- 📈 **A live stock market** — trade **Saudi (Tadawul)** and **US** stocks side by
+  side. Real company logos, prices that tick live, animated charts, search &
+  filters, and one‑tap buy/sell that actually updates your holdings and cash.
+- 🤖 **An AI assistant that knows your money** — ask about your spending, budgets,
+  or whether you can afford something, and get clear answers in your language
+  (powered by Claude, with a graceful offline fallback).
+- 💳 **A digital card, Apple‑Wallet style** — a stacked, tappable wallet with
+  freeze, reveal details, spending controls, and Apple Pay.
+- 📊 **Rich analytics & insights** — cash‑flow, spending breakdowns, net‑worth
+  trends, and smart, personalized observations — all with custom, locale‑aware
+  charts.
+- 🎨 **Premium, Apple‑inspired design** — calm surfaces, thoughtful motion, light
+  **and** dark modes, an animated hero, and a big‑typography footer.
 
-## Tech
+## Take a tour
 
-- **Next.js 15** (App Router) · **React 19** · **TypeScript** (strict)
-- **Tailwind CSS v4** (CSS-first tokens) · **next-intl** · **next-themes** · **motion** · **lucide-react**
-- **@anthropic-ai/sdk** for the AI assistant
+| | |
+|---|---|
+| **Dashboard** — net worth, spending, goals, quick actions | **Markets** — live Saudi + US trading |
+| **Portfolio** — holdings, allocation, performance | **AI Assistant** — chat about your finances |
+| **Virtual Card** — Apple‑Wallet‑style stack | **Wallet · Transactions · Payments** |
+| **Analytics · Insights** — charts and observations | **Settings** — language, theme, security |
 
-## Getting started
+> Tip: open the app, then use the **language toggle** in the top bar to flip the
+> entire experience between Arabic and English — and the **theme toggle** for dark
+> mode.
+
+## Try it locally
 
 ```bash
 npm install
-cp .env.example .env.local   # optional: add ANTHROPIC_API_KEY for the live AI assistant
-npm run dev                  # http://localhost:3000  → redirects to /en
+npm run dev        # open http://localhost:3000  (redirects to /en)
 ```
 
-Visit `/ar` for the Arabic (RTL) experience, or switch languages from the top bar.
+Then visit **`/ar`** for the Arabic, right‑to‑left experience — or just tap the
+language switch in the app.
 
-### Environment
-
-| Variable | Purpose |
-| --- | --- |
-| `ANTHROPIC_API_KEY` | Enables the live Claude-powered assistant. Without it, the assistant uses curated bilingual demo responses. |
-| `ANTHROPIC_MODEL` | Model id for the assistant (default `claude-sonnet-4-6`). |
-
-## Scripts
+To enable the **live** AI assistant, add an Anthropic API key (optional — the
+assistant works with curated responses without it):
 
 ```bash
-npm run dev        # development
-npm run build      # production build (all routes prerendered per locale)
-npm run start      # serve the production build
-npm run typecheck  # tsc --noEmit
+cp .env.example .env.local   # then set ANTHROPIC_API_KEY
 ```
 
-## Project structure
+## Built with
 
-```
-src/
-  app/
-    [locale]/            # localized routes
-      (app)/             # authenticated app shell + 12 screens
-      page.tsx           # landing
-    api/chat/            # Claude-powered assistant (streaming + fallback)
-  components/
-    ui/                  # reusable primitives (Button, Card, Switch, …)
-    charts/              # locale + RTL-aware SVG charts
-    layout/              # sidebar, topbar, switchers, app shell
-    finance/             # business components (card, transaction row, …)
-  features/              # one folder per screen
-  data/                  # typed, centralized, bilingual demo data
-  i18n/                  # next-intl routing + request config
-  messages/              # en.json · ar.json
-  lib/                   # format, localized, utils
-```
+**Next.js 15** (App Router) · **React 19** · **TypeScript** · **Tailwind CSS v4** ·
+**next‑intl** (i18n) · custom **SVG charts** · **WebGL** backgrounds · **Claude API**.
 
 ---
 
 <div align="center">
-<sub>naqd is a product demo, not a licensed financial institution.</sub>
+<sub>naqd is a product demo built for evaluation — not a licensed financial institution.</sub>
 </div>
