@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion } from "motion/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowUp, Plus, Sparkles, Square, Copy, Check } from "lucide-react";
+import { ArrowUp, Plus, Sparkles, Square, Copy, Check, PanelLeft, X } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 import { LogoMark } from "@/components/brand/logo";
 import { Avatar } from "@/components/ui/avatar";
@@ -11,6 +11,7 @@ import { useFinance } from "@/components/finance/finance-provider";
 import { pick } from "@/lib/localized";
 import { cn } from "@/lib/utils";
 import { MarkdownMessage } from "./markdown-message";
+import { ConversationSidebar, type ConversationSummary } from "./conversation-sidebar";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -18,10 +19,15 @@ export function AssistantScreen() {
   const locale = useLocale() as Locale;
   const t = useTranslations("assistant");
   const { user } = useFinance();
+
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [currentId, setCurrentId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [copied, setCopied] = useState<number | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -32,6 +38,21 @@ export function AssistantScreen() {
     t("suggestion3"),
     t("suggestion4"),
   ];
+
+  const loadConversations = useCallback(async () => {
+    try {
+      const res = await fetch("/api/assistant/conversations");
+      if (!res.ok) return;
+      const data = (await res.json()) as { conversations: ConversationSummary[] };
+      setConversations(data.conversations ?? []);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    loadConversations();
+  }, [loadConversations]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -44,6 +65,46 @@ export function AssistantScreen() {
 
   function stop() {
     abortRef.current?.abort();
+  }
+
+  function newChat() {
+    stop();
+    setMessages([]);
+    setCurrentId(null);
+    setDrawerOpen(false);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  }
+
+  async function selectConversation(id: string) {
+    if (id === currentId) {
+      setDrawerOpen(false);
+      return;
+    }
+    stop();
+    setDrawerOpen(false);
+    setCurrentId(id);
+    setMessages([]);
+    try {
+      const res = await fetch(`/api/assistant/conversations/${id}`);
+      if (!res.ok) return;
+      const data = (await res.json()) as { messages: Msg[] };
+      setMessages(data.messages ?? []);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  async function deleteConversation(id: string) {
+    setConversations((prev) => prev.filter((c) => c.id !== id));
+    if (id === currentId) {
+      setMessages([]);
+      setCurrentId(null);
+    }
+    try {
+      await fetch(`/api/assistant/conversations/${id}`, { method: "DELETE" });
+    } catch {
+      /* ignore */
+    }
   }
 
   async function send(text: string) {
@@ -63,10 +124,13 @@ export function AssistantScreen() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next, locale }),
+        body: JSON.stringify({ messages: next, locale, conversationId: currentId }),
         signal: controller.signal,
       });
+      const cid = res.headers.get("X-Conversation-Id");
+      if (cid) setCurrentId(cid);
       if (!res.body) throw new Error("no body");
+
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let acc = "";
@@ -94,6 +158,7 @@ export function AssistantScreen() {
     } finally {
       setStreaming(false);
       abortRef.current = null;
+      loadConversations();
       inputRef.current?.focus();
     }
   }
@@ -112,194 +177,241 @@ export function AssistantScreen() {
   const lastIndex = messages.length - 1;
 
   return (
-    <div className="flex h-[calc(100dvh-10rem)] flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-xs">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
-        <div className="flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground">
-            <Sparkles className="h-4 w-4" />
-          </span>
-          <div>
-            <p className="text-sm font-semibold text-foreground">{t("title")}</p>
-            <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
+    <div className="relative flex h-[calc(100dvh-10rem)] overflow-hidden rounded-3xl border border-border bg-card shadow-xs">
+      {/* Sidebar — desktop */}
+      <ConversationSidebar
+        className="hidden w-64 shrink-0 border-e border-border lg:flex"
+        conversations={conversations}
+        currentId={currentId}
+        onSelect={selectConversation}
+        onNew={newChat}
+        onDelete={deleteConversation}
+      />
+
+      {/* Chats — full-screen overlay on mobile */}
+      <AnimatePresence>
+        {drawerOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 flex flex-col bg-card pb-[env(safe-area-inset-bottom)] lg:hidden"
+            initial={{ opacity: 0, x: "-8%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "-8%" }}
+            transition={{ type: "spring", stiffness: 420, damping: 40 }}
+          >
+            <div className="flex items-center justify-between border-b border-border px-4 py-3.5 pt-[calc(0.875rem+env(safe-area-inset-top))]">
+              <p className="text-base font-semibold text-foreground">{t("conversations")}</p>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                aria-label={t("close")}
+                className="grid h-9 w-9 place-items-center rounded-xl text-muted-foreground hover:bg-accent"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <ConversationSidebar
+              className="min-h-0 flex-1"
+              hideLabel
+              conversations={conversations}
+              currentId={currentId}
+              onSelect={selectConversation}
+              onNew={newChat}
+              onDelete={deleteConversation}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Chat pane */}
+      <div className="relative flex min-w-0 flex-1 flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-border px-4 py-3.5 sm:px-5">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <button
+              onClick={() => setDrawerOpen(true)}
+              aria-label={t("conversations")}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-foreground hover:bg-accent lg:hidden"
+            >
+              <PanelLeft className="h-5 w-5" />
+            </button>
+            <span className="hidden h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground sm:grid">
+              <Sparkles className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-foreground">{t("title")}</p>
+              <p className="truncate text-xs text-muted-foreground">{t("subtitle")}</p>
+            </div>
           </div>
-        </div>
-        {messages.length > 0 && (
           <button
-            onClick={() => {
-              stop();
-              setMessages([]);
-            }}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent"
+            onClick={newChat}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent"
           >
             <Plus className="h-3.5 w-3.5" />
             {t("newChat")}
           </button>
-        )}
-      </div>
-
-      {/* Messages */}
-      <div ref={scrollRef} className="flex-1 space-y-5 overflow-y-auto px-4 py-6 sm:px-6">
-        {/* Greeting */}
-        <div className="flex gap-3">
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-brand-soft text-primary-strong">
-            <LogoMark className="h-4 w-4" />
-          </span>
-          <div className="max-w-[42rem] rounded-2xl rounded-ss-sm bg-surface-muted px-4 py-3">
-            <p className="text-sm font-medium text-foreground">
-              {t("greeting", { name: pick(user.firstName, locale) })}
-            </p>
-            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-              {t("greetingBody")}
-            </p>
-          </div>
         </div>
 
-        {messages.map((m, i) => {
-          const isStreamingMsg = streaming && i === lastIndex && m.role === "assistant";
-          if (m.role === "user") {
+        {/* Messages */}
+        <div ref={scrollRef} className="flex-1 space-y-5 overflow-y-auto px-4 py-6 sm:px-6">
+          {/* Greeting */}
+          <div className="flex gap-3">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-brand-soft text-primary-strong">
+              <LogoMark className="h-4 w-4" />
+            </span>
+            <div className="max-w-[42rem] rounded-2xl rounded-ss-sm bg-surface-muted px-4 py-3">
+              <p className="text-sm font-medium text-foreground">
+                {t("greeting", { name: pick(user.firstName, locale) })}
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                {t("greetingBody")}
+              </p>
+            </div>
+          </div>
+
+          {messages.map((m, i) => {
+            const isStreamingMsg = streaming && i === lastIndex && m.role === "assistant";
+            if (m.role === "user") {
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex justify-end gap-3"
+                >
+                  <div className="max-w-[42rem] rounded-2xl rounded-se-sm bg-primary px-4 py-3 text-primary-foreground">
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed">{m.content}</p>
+                  </div>
+                  <Avatar name={pick(user.name, locale)} size="sm" className="mt-0.5" />
+                </motion.div>
+              );
+            }
             return (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                className="flex justify-end gap-3"
+                className="group flex gap-3"
               >
-                <div className="max-w-[42rem] rounded-2xl rounded-se-sm bg-primary px-4 py-3 text-primary-foreground">
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed">{m.content}</p>
-                </div>
-                <Avatar name={pick(user.name, locale)} size="sm" className="mt-0.5" />
-              </motion.div>
-            );
-          }
-          return (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-              className="group flex gap-3"
-            >
-              <span
-                className={cn(
-                  "grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-brand-soft text-primary-strong",
-                  isStreamingMsg && "ring-2 ring-primary/30",
-                )}
-              >
-                <LogoMark className="h-4 w-4" />
-              </span>
-              <div className="min-w-0 max-w-[42rem]">
-                <div className="rounded-2xl rounded-ss-sm bg-surface-muted px-4 py-3 text-sm text-foreground">
-                  {m.content ? (
-                    isStreamingMsg ? (
-                      <p className="whitespace-pre-wrap leading-relaxed">
-                        {m.content}
-                        <span className="ms-0.5 inline-block h-[1.05em] w-[2px] translate-y-[0.15em] animate-pulse rounded-full bg-primary align-middle" />
-                      </p>
+                <span
+                  className={cn(
+                    "grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-brand-soft text-primary-strong",
+                    isStreamingMsg && "ring-2 ring-primary/30",
+                  )}
+                >
+                  <LogoMark className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 max-w-[42rem]">
+                  <div className="rounded-2xl rounded-ss-sm bg-surface-muted px-4 py-3 text-sm text-foreground">
+                    {m.content ? (
+                      isStreamingMsg ? (
+                        <p className="whitespace-pre-wrap leading-relaxed">
+                          {m.content}
+                          <span className="ms-0.5 inline-block h-[1.05em] w-[2px] translate-y-[0.15em] animate-pulse rounded-full bg-primary align-middle" />
+                        </p>
+                      ) : (
+                        <MarkdownMessage content={m.content} />
+                      )
                     ) : (
-                      <MarkdownMessage content={m.content} />
-                    )
-                  ) : (
-                    <ThinkingIndicator label={t("thinking")} />
+                      <ThinkingIndicator label={t("thinking")} />
+                    )}
+                  </div>
+
+                  {m.content && !isStreamingMsg && (
+                    <button
+                      onClick={() => copy(m.content, i)}
+                      className="mt-1.5 inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-xs text-subtle-foreground opacity-0 transition-opacity hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100"
+                    >
+                      {copied === i ? (
+                        <>
+                          <Check className="h-3.5 w-3.5 text-positive" />
+                          {t("copied")}
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3.5 w-3.5" />
+                          {t("copy")}
+                        </>
+                      )}
+                    </button>
                   )}
                 </div>
+              </motion.div>
+            );
+          })}
 
-                {/* Copy — only on completed assistant answers */}
-                {m.content && !isStreamingMsg && (
-                  <button
-                    onClick={() => copy(m.content, i)}
-                    className="mt-1.5 inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-xs text-subtle-foreground opacity-0 transition-opacity hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100"
+          {/* Suggestions */}
+          {empty && (
+            <div className="ps-11">
+              <p className="mb-2 text-xs font-medium text-subtle-foreground">
+                {t("suggestionsTitle")}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {suggestions.map((s, i) => (
+                  <motion.button
+                    key={s}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, delay: 0.05 * i, ease: [0.22, 1, 0.36, 1] }}
+                    onClick={() => send(s)}
+                    className="rounded-full border border-border bg-surface px-3.5 py-2 text-start text-sm text-foreground transition-colors hover:border-primary hover:bg-brand-soft"
                   >
-                    {copied === i ? (
-                      <>
-                        <Check className="h-3.5 w-3.5 text-positive" />
-                        {t("copied")}
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3.5 w-3.5" />
-                        {t("copy")}
-                      </>
-                    )}
-                  </button>
-                )}
+                    {s}
+                  </motion.button>
+                ))}
               </div>
-            </motion.div>
-          );
-        })}
-
-        {/* Suggestions */}
-        {empty && (
-          <div className="ps-11">
-            <p className="mb-2 text-xs font-medium text-subtle-foreground">
-              {t("suggestionsTitle")}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {suggestions.map((s, i) => (
-                <motion.button
-                  key={s}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.25, delay: 0.05 * i, ease: [0.22, 1, 0.36, 1] }}
-                  onClick={() => send(s)}
-                  className="rounded-full border border-border bg-surface px-3.5 py-2 text-start text-sm text-foreground transition-colors hover:border-primary hover:bg-brand-soft"
-                >
-                  {s}
-                </motion.button>
-              ))}
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* Composer */}
-      <div className="border-t border-border bg-surface/60 p-3 sm:p-4">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            send(input);
-          }}
-          className="flex items-end gap-2 rounded-2xl border border-border bg-surface p-2 focus-within:ring-2 focus-within:ring-ring"
-        >
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value);
-              autoGrow(e.target);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                send(input);
-              }
-            }}
-            rows={1}
-            placeholder={t("placeholder")}
-            className="max-h-40 flex-1 resize-none bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-subtle-foreground focus:outline-none"
-          />
-          {streaming ? (
-            <button
-              type="button"
-              onClick={stop}
-              aria-label={t("stop")}
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-foreground text-background transition-opacity hover:opacity-90"
-            >
-              <Square className="h-4 w-4 fill-current" />
-            </button>
-          ) : (
-            <button
-              type="submit"
-              disabled={!input.trim()}
-              aria-label={t("send")}
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground transition-opacity hover:bg-primary-strong disabled:opacity-40"
-            >
-              <ArrowUp className="h-5 w-5" />
-            </button>
           )}
-        </form>
-        <p className="mt-2 text-center text-xs text-subtle-foreground">{t("disclaimer")}</p>
+        </div>
+
+        {/* Composer */}
+        <div className="border-t border-border bg-surface/60 p-3 sm:p-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              send(input);
+            }}
+            className="flex items-end gap-2 rounded-2xl border border-border bg-surface p-2 focus-within:ring-2 focus-within:ring-ring"
+          >
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                autoGrow(e.target);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  send(input);
+                }
+              }}
+              rows={1}
+              placeholder={t("placeholder")}
+              className="max-h-40 flex-1 resize-none bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-subtle-foreground focus:outline-none"
+            />
+            {streaming ? (
+              <button
+                type="button"
+                onClick={stop}
+                aria-label={t("stop")}
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-foreground text-background transition-opacity hover:opacity-90"
+              >
+                <Square className="h-4 w-4 fill-current" />
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={!input.trim()}
+                aria-label={t("send")}
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground transition-opacity hover:bg-primary-strong disabled:opacity-40"
+              >
+                <ArrowUp className="h-5 w-5" />
+              </button>
+            )}
+          </form>
+          <p className="mt-2 text-center text-xs text-subtle-foreground">{t("disclaimer")}</p>
+        </div>
       </div>
     </div>
   );

@@ -498,7 +498,11 @@
     "stop": "إيقاف",
     "copy": "نسخ",
     "copied": "تم النسخ",
-    "analyzing": "أحلّل بياناتك المالية…"
+    "analyzing": "أحلّل بياناتك المالية…",
+    "conversations": "المحادثات",
+    "noConversations": "لا توجد محادثات بعد",
+    "deleteChat": "حذف المحادثة",
+    "close": "إغلاق"
   },
   "notifications": {
     "title": "الإشعارات",

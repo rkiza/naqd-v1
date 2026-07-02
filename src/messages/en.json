@@ -498,7 +498,11 @@
     "stop": "Stop",
     "copy": "Copy",
     "copied": "Copied",
-    "analyzing": "Analyzing your finances…"
+    "analyzing": "Analyzing your finances…",
+    "conversations": "Chats",
+    "noConversations": "No chats yet",
+    "deleteChat": "Delete chat",
+    "close": "Close"
   },
   "notifications": {
     "title": "Notifications",

@@ -1,6 +1,7 @@
 import { systemPrompt } from "./financial-context";
 import { scriptedReply } from "./scripted";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/db";
 import { getFinanceContext } from "@/server/finance/get-finance-context";
 
 export const runtime = "nodejs";
@@ -13,36 +14,24 @@ const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const DEFAULT_MODEL = "google/gemini-3.5-flash";
 const DEFAULT_FALLBACK_MODEL = "openai/gpt-4o-mini";
 
-/** Stream a fixed string back word-by-word for a natural typing effect. */
-function streamScripted(text: string, note?: string): Response {
-  const stream = new ReadableStream({
-    async start(controller) {
-      if (note) controller.enqueue(encoder.encode(`\0${note}\0`));
-      const tokens = text.split(/(\s+)/);
-      for (const tok of tokens) {
-        controller.enqueue(encoder.encode(tok));
-        await new Promise((r) => setTimeout(r, 8));
-      }
-      controller.close();
-    },
-  });
-  return new Response(stream, {
-    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache" },
-  });
+/** Derive a short conversation title from the first user message. */
+function deriveTitle(text: string): string {
+  const t = text.replace(/\s+/g, " ").trim();
+  if (!t) return "New chat";
+  return t.length > 48 ? `${t.slice(0, 48).trimEnd()}…` : t;
 }
 
-async function streamScriptedFallback(
+/** Emit a fixed string token-by-token (used for the offline / fallback path). */
+async function emitText(
   controller: ReadableStreamDefaultController<Uint8Array>,
-  lastUser: string,
-  locale: "en" | "ar",
+  parts: string[],
+  text: string,
 ) {
-  const fallback = scriptedReply(lastUser, locale);
-  const tokens = fallback.split(/(\s+)/);
-  for (const tok of tokens) {
+  for (const tok of text.split(/(\s+)/)) {
     controller.enqueue(encoder.encode(tok));
+    parts.push(tok);
     await new Promise((r) => setTimeout(r, 8));
   }
-  controller.close();
 }
 
 function openRouterHeaders(apiKey: string): HeadersInit {
@@ -59,10 +48,10 @@ function openRouterHeaders(apiKey: string): HeadersInit {
 
 async function streamOpenRouterModel(
   controller: ReadableStreamDefaultController<Uint8Array>,
+  parts: string[],
   apiKey: string,
   model: string,
   messages: ChatMessage[],
-  locale: "en" | "ar",
   system: string,
 ) {
   const response = await fetch(OPENROUTER_URL, {
@@ -115,6 +104,7 @@ async function streamOpenRouterModel(
         if (text) {
           receivedText = true;
           controller.enqueue(encoder.encode(text));
+          parts.push(text);
         }
       } catch (err) {
         if (err instanceof SyntaxError) continue;
@@ -133,13 +123,14 @@ export async function POST(req: Request) {
   if (!session?.user?.id) {
     return new Response("Unauthorized", { status: 401 });
   }
+  const userId = session.user.id;
 
-  const finance = await getFinanceContext(session.user.id);
+  const finance = await getFinanceContext(userId);
   if (!finance) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  let body: { messages?: ChatMessage[]; locale?: string };
+  let body: { messages?: ChatMessage[]; locale?: string; conversationId?: string };
   try {
     body = await req.json();
   } catch {
@@ -151,36 +142,78 @@ export async function POST(req: Request) {
   );
   const locale: "en" | "ar" = body.locale === "ar" ? "ar" : "en";
   const lastUser = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
-
-  const apiKey = process.env.OPENROUTER_API_KEY;
-
-  // No key -> curated, fully-offline demo response.
-  if (!apiKey) {
-    return streamScripted(scriptedReply(lastUser, locale));
+  if (!lastUser.trim()) {
+    return new Response("Bad request", { status: 400 });
   }
 
+  // Resolve or create the conversation, then persist the incoming user message.
+  let conversationId = body.conversationId;
+  if (conversationId) {
+    const owned = await prisma.conversation.findFirst({
+      where: { id: conversationId, userId },
+      select: { id: true },
+    });
+    if (!owned) conversationId = undefined;
+  }
+  if (!conversationId) {
+    const created = await prisma.conversation.create({
+      data: { userId, title: deriveTitle(lastUser) },
+      select: { id: true },
+    });
+    conversationId = created.id;
+  }
+  await prisma.chatMessage.create({
+    data: { conversationId, role: "user", content: lastUser },
+  });
+
+  const apiKey = process.env.OPENROUTER_API_KEY;
   const primaryModel = process.env.OPENROUTER_MODEL || DEFAULT_MODEL;
   const fallbackModel = process.env.OPENROUTER_FALLBACK_MODEL || DEFAULT_FALLBACK_MODEL;
   const system = systemPrompt(locale, finance);
+  const convoId = conversationId;
 
+  const parts: string[] = [];
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        await streamOpenRouterModel(controller, apiKey, primaryModel, messages, locale, system);
+        if (!apiKey) {
+          await emitText(controller, parts, scriptedReply(lastUser, locale));
+        } else {
+          try {
+            await streamOpenRouterModel(controller, parts, apiKey, primaryModel, messages, system);
+          } catch {
+            try {
+              await streamOpenRouterModel(controller, parts, apiKey, fallbackModel, messages, system);
+            } catch {
+              await emitText(controller, parts, scriptedReply(lastUser, locale));
+            }
+          }
+        }
+      } finally {
         controller.close();
-      } catch {
-        try {
-          await streamOpenRouterModel(controller, apiKey, fallbackModel, messages, locale, system);
-          controller.close();
-        } catch {
-          // Both models failed -> seamless fallback to the scripted reply.
-          await streamScriptedFallback(controller, lastUser, locale);
+        const answer = parts.join("").trim();
+        if (answer) {
+          try {
+            await prisma.chatMessage.create({
+              data: { conversationId: convoId, role: "assistant", content: answer },
+            });
+            await prisma.conversation.update({
+              where: { id: convoId },
+              data: { updatedAt: new Date() },
+            });
+          } catch {
+            /* persistence best-effort */
+          }
         }
       }
     },
   });
 
   return new Response(stream, {
-    headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache" },
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-cache",
+      "X-Conversation-Id": convoId,
+    },
   });
 }
