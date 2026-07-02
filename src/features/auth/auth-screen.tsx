@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 import { ThemeSwitcher } from "@/components/layout/theme-switcher";
 import ColorBends from "@/components/react-bits/color-bends";
+import { markWelcomeToast } from "@/lib/auth/welcome-toast";
 
 type Step = "form" | "otp";
 type LoginMethod = "password" | "otp";
@@ -182,6 +183,7 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
           redirect: false,
         });
         if (result?.error) throw new Error(t("invalidCredentials"));
+        markWelcomeToast();
         router.push("/dashboard");
       } else {
         const res = await fetch("/api/auth/login/otp/send", {
@@ -219,6 +221,7 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
         redirect: false,
       });
       if (result?.error) throw new Error(t("invalidOtp"));
+      markWelcomeToast();
       router.push("/dashboard");
     } catch (err) {
       setApiError(err instanceof Error ? err.message : t("invalidOtp"));

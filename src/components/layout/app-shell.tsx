@@ -10,11 +10,14 @@ import { Logo } from "@/components/brand/logo";
 import { Sidebar } from "./sidebar";
 import { SidebarNav } from "./sidebar-nav";
 import { Topbar } from "./topbar";
+import { useWelcomeToast } from "@/hooks/use-welcome-toast";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const locale = useLocale() as Locale;
   const rtl = localeDirection[locale] === "rtl";
+
+  useWelcomeToast();
 
   return (
     <div className="flex min-h-dvh">

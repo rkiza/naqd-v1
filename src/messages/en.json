@@ -202,7 +202,8 @@
     "errorGeneric": "Something went wrong. Please try again.",
     "oauthError": "Could not sign in with this provider",
     "demoEmail": "fahad@naqd.sa",
-    "demoPassword": "demo1234"
+    "demoPassword": "demo1234",
+    "welcomeBack": "Welcome back"
   },
   "topbar": {
     "searchPlaceholder": "Search…",
