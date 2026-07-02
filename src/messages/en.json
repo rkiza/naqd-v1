@@ -402,7 +402,17 @@
     "allocationSukuk": "Sukuk",
     "allocationCommodities": "Commodities",
     "invested": "Invested",
-    "viewHolding": "View"
+    "viewHolding": "View",
+    "costBasis": "Cost basis",
+    "dayChange": "Day change",
+    "totalReturn": "Total return",
+    "market": "Market",
+    "type": "Type",
+    "amount": "Amount",
+    "addFundsSubtitle": "Add cash to your portfolio to invest.",
+    "adding": "Adding…",
+    "fundsAdded": "Funds added",
+    "fundsAddedBody": "Added to your portfolio."
   },
   "investment": {
     "title": "Investment",

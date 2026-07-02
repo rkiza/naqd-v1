@@ -402,7 +402,17 @@
     "allocationSukuk": "صكوك",
     "allocationCommodities": "سلع",
     "invested": "المستثمر",
-    "viewHolding": "عرض"
+    "viewHolding": "عرض",
+    "costBasis": "التكلفة الأساسية",
+    "dayChange": "تغيّر اليوم",
+    "totalReturn": "إجمالي العائد",
+    "market": "السوق",
+    "type": "النوع",
+    "amount": "المبلغ",
+    "addFundsSubtitle": "أضِف نقداً إلى محفظتك للاستثمار.",
+    "adding": "جارٍ الإضافة…",
+    "fundsAdded": "تمت إضافة الأموال",
+    "fundsAddedBody": "أُضيفت إلى محفظتك."
   },
   "investment": {
     "title": "الاستثمار",

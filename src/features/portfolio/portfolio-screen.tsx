@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { motion } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
@@ -11,6 +12,9 @@ import { Delta } from "@/components/ui/trend";
 import { AreaChart } from "@/components/charts/area-chart";
 import { DonutChart } from "@/components/charts/donut-chart";
 import { useFinance } from "@/components/finance/finance-provider";
+import { HoldingDetailPanel } from "@/components/finance/holding-detail-panel";
+import { AddFundsDialog } from "./add-funds-dialog";
+import type { Holding } from "@/data/types";
 import { pick } from "@/lib/localized";
 import { formatPercent, formatDate, formatNumber } from "@/lib/format";
 import { Money } from "@/components/ui/money";
@@ -32,6 +36,8 @@ export function PortfolioScreen() {
   } = useFinance();
   const [period, setPeriod] = useState<Period>("year");
   const [activeAlloc, setActiveAlloc] = useState<string | null>(null);
+  const [fundsOpen, setFundsOpen] = useState(false);
+  const [selectedHolding, setSelectedHolding] = useState<Holding | null>(null);
 
   const data = useMemo(() => portfolioHistory.slice(-windows[period]), [period, portfolioHistory]);
 
@@ -80,19 +86,26 @@ export function PortfolioScreen() {
                 { value: "all", label: tp("all") },
               ]}
             />
-            <Button size="sm">
+            <Button size="sm" onClick={() => setFundsOpen(true)}>
               <Plus className="h-4 w-4" />
               {t("addFunds")}
             </Button>
           </div>
         </div>
         <div className="mt-4">
-          <AreaChart
-            data={data}
-            height={240}
-            formatValue={(v) => <Money value={v} locale={locale} decimals={0} />}
-            formatLabel={(tt) => formatDate(`${tt}-01`, locale, { month: "long", year: "numeric" })}
-          />
+          <motion.div
+            key={period}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <AreaChart
+              data={data}
+              height={240}
+              formatValue={(v) => <Money value={v} locale={locale} decimals={0} />}
+              formatLabel={(tt) => formatDate(`${tt}-01`, locale, { month: "long", year: "numeric" })}
+            />
+          </motion.div>
         </div>
       </Card>
 
@@ -115,7 +128,16 @@ export function PortfolioScreen() {
                 return (
                   <div
                     key={h.id}
-                    className="grid grid-cols-2 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-surface-muted sm:grid-cols-[1.6fr_1fr_1fr_0.8fr]"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelectedHolding(h)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelectedHolding(h);
+                      }
+                    }}
+                    className="grid cursor-pointer grid-cols-2 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:grid-cols-[1.6fr_1fr_1fr_0.8fr]"
                   >
                     <div className="flex items-center gap-3">
                       <span
@@ -196,6 +218,14 @@ export function PortfolioScreen() {
           </CardContent>
         </Card>
       </div>
+
+      <AddFundsDialog open={fundsOpen} onClose={() => setFundsOpen(false)} />
+
+      <HoldingDetailPanel
+        holding={selectedHolding}
+        open={selectedHolding !== null}
+        onClose={() => setSelectedHolding(null)}
+      />
     </div>
   );
 }
