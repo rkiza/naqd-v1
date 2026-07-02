@@ -4,12 +4,22 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Image that only renders once it has actually loaded — otherwise it shows a
- * branded placeholder. Preloading via JS (instead of a plain <img onError>)
- * avoids the native broken-image icon when a mockup file isn't present yet, and
- * sidesteps the pre-hydration error event being missed.
+ * Image that renders at its natural height (full screenshot, never cropped)
+ * once loaded, and shows a branded placeholder — at the given aspect ratio —
+ * while loading or if the file is missing. Preloading via JS avoids the native
+ * broken-image icon and the missed pre-hydration error event.
  */
-function MockupImage({ src, alt, dir }: { src: string; alt: string; dir?: "ltr" | "rtl" }) {
+function MockupImage({
+  src,
+  alt,
+  dir,
+  ratio = "aspect-[16/10]",
+}: {
+  src: string;
+  alt: string;
+  dir?: "ltr" | "rtl";
+  ratio?: string;
+}) {
   const [status, setStatus] = useState<"loading" | "ok" | "fail">("loading");
 
   useEffect(() => {
@@ -26,17 +36,17 @@ function MockupImage({ src, alt, dir }: { src: string; alt: string; dir?: "ltr" 
   if (status === "ok") {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={src}
-        alt={alt}
-        dir={dir}
-        className="h-full w-full object-cover object-top"
-      />
+      <img src={src} alt={alt} dir={dir} className="block h-auto w-full" />
     );
   }
 
   return (
-    <div className="grid h-full w-full place-items-center bg-gradient-to-br from-brand-soft via-surface to-surface-muted">
+    <div
+      className={cn(
+        "grid w-full place-items-center bg-gradient-to-br from-brand-soft via-surface to-surface-muted",
+        ratio,
+      )}
+    >
       <div className="flex flex-col items-center gap-1.5 text-subtle-foreground">
         <span className="text-base font-semibold text-primary-strong">naqd</span>
         <span className="text-xs">{alt}</span>
@@ -45,7 +55,7 @@ function MockupImage({ src, alt, dir }: { src: string; alt: string; dir?: "ltr" 
   );
 }
 
-/** macOS-style browser window wrapping a product screenshot. */
+/** macOS-style browser window wrapping a product screenshot (shown in full). */
 export function BrowserFrame({
   src,
   alt,
@@ -78,14 +88,12 @@ export function BrowserFrame({
           {url}
         </span>
       </div>
-      <div className="aspect-[16/10] w-full bg-surface-muted">
-        <MockupImage src={src} alt={alt} />
-      </div>
+      <MockupImage src={src} alt={alt} ratio="aspect-[16/10]" />
     </div>
   );
 }
 
-/** iPhone-style frame wrapping a mobile screenshot. */
+/** iPhone-style frame wrapping a mobile screenshot (shown in full). */
 export function PhoneFrame({
   src,
   alt,
@@ -100,13 +108,13 @@ export function PhoneFrame({
   return (
     <div
       className={cn(
-        "relative w-[220px] rounded-[2.2rem] border-[6px] border-[#0c0d0f] bg-[#0c0d0f] shadow-2xl",
+        "relative w-[230px] overflow-hidden rounded-[2.4rem] border-[7px] border-[#0c0d0f] bg-[#0c0d0f] shadow-2xl",
         className,
       )}
     >
-      <div className="absolute left-1/2 top-2 z-10 h-4 w-24 -translate-x-1/2 rounded-full bg-[#0c0d0f]" />
-      <div className="aspect-[9/19] w-full overflow-hidden rounded-[1.7rem] bg-surface">
-        <MockupImage src={src} alt={alt} dir={dir} />
+      <div className="absolute left-1/2 top-2.5 z-10 h-4 w-24 -translate-x-1/2 rounded-full bg-[#0c0d0f]" />
+      <div className="overflow-hidden rounded-[1.9rem] bg-surface">
+        <MockupImage src={src} alt={alt} dir={dir} ratio="aspect-[9/19]" />
       </div>
     </div>
   );
