@@ -11,6 +11,7 @@ import { Sidebar } from "./sidebar";
 import { SidebarNav } from "./sidebar-nav";
 import { Topbar } from "./topbar";
 import { useWelcomeToast } from "@/hooks/use-welcome-toast";
+import { PageTransition } from "./page-transition";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -26,7 +27,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar onMenuClick={() => setDrawerOpen(true)} />
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-          <div className="mx-auto w-full max-w-[1180px]">{children}</div>
+          <div className="mx-auto w-full max-w-[1180px]">
+            <PageTransition>{children}</PageTransition>
+          </div>
         </main>
       </div>
 

@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { Link } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 
 type Ctx = {
@@ -95,7 +96,7 @@ export function DropdownContent({
       id={id}
       role="menu"
       className={cn(
-        "absolute top-[calc(100%+0.5rem)] z-50 min-w-52 origin-top rounded-2xl border border-border bg-popover p-1.5 text-popover-foreground shadow-lg animate-scale-in",
+        "absolute top-[calc(100%+0.5rem)] z-50 flex min-w-52 flex-col gap-0.5 origin-top rounded-2xl border border-border bg-popover p-1.5 text-popover-foreground shadow-lg animate-scale-in",
         align === "end" ? "end-0" : "start-0",
         className,
       )}
@@ -111,14 +112,45 @@ export function DropdownItem({
   active,
   className,
   icon,
+  href,
 }: {
   children: ReactNode;
   onSelect?: () => void;
   active?: boolean;
   className?: string;
   icon?: ReactNode;
+  href?: string;
 }) {
   const { setOpen } = useDropdown();
+
+  const classes = cn(
+    "flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-start text-sm font-medium transition-colors",
+    "hover:bg-accent focus-visible:bg-accent focus-visible:outline-none",
+    active ? "text-primary-strong" : "text-foreground",
+    className,
+  );
+
+  const content = (
+    <>
+      {icon}
+      <span className="flex-1">{children}</span>
+      {active && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        role="menuitem"
+        onClick={() => setOpen(false)}
+        className={classes}
+      >
+        {content}
+      </Link>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -127,16 +159,9 @@ export function DropdownItem({
         onSelect?.();
         setOpen(false);
       }}
-      className={cn(
-        "flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-start text-sm font-medium transition-colors",
-        "hover:bg-accent focus-visible:bg-accent focus-visible:outline-none",
-        active ? "text-primary-strong" : "text-foreground",
-        className,
-      )}
+      className={classes}
     >
-      {icon}
-      <span className="flex-1">{children}</span>
-      {active && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+      {content}
     </button>
   );
 }

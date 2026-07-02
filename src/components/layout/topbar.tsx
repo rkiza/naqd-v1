@@ -79,12 +79,12 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
         </Link>
 
         <Dropdown>
-          <DropdownTrigger className="flex items-center gap-2 rounded-xl py-1 ps-1 pe-2 hover:bg-accent">
+          <DropdownTrigger className="flex h-10 items-center gap-2 rounded-xl border border-border bg-surface ps-1 pe-2 hover:bg-accent">
             <Avatar name={pick(user.name, locale)} size="sm" />
             <ChevronDown className="hidden h-4 w-4 text-muted-foreground sm:block" />
           </DropdownTrigger>
           <DropdownContent>
-            <div className="flex items-center gap-3 px-3 py-2">
+            <div className="flex items-center gap-3 rounded-xl px-3 py-2">
               <Avatar name={pick(user.name, locale)} />
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-foreground">
@@ -96,16 +96,12 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
               </div>
             </div>
             <DropdownSeparator />
-            <Link href="/settings">
-              <DropdownItem icon={<User className="h-4 w-4" />}>
-                {tTop("viewProfile")}
-              </DropdownItem>
-            </Link>
-            <button type="button" onClick={handleSignOut}>
-              <DropdownItem icon={<LogOut className="h-4 w-4" />}>
-                {tTop("signOut")}
-              </DropdownItem>
-            </button>
+            <DropdownItem href="/settings" icon={<User className="h-4 w-4" />}>
+              {tTop("viewProfile")}
+            </DropdownItem>
+            <DropdownItem icon={<LogOut className="h-4 w-4" />} onSelect={handleSignOut}>
+              {tTop("signOut")}
+            </DropdownItem>
           </DropdownContent>
         </Dropdown>
       </div>
