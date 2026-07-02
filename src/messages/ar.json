@@ -183,7 +183,22 @@
     "heroSubtitle": "إنفاق واستثمار ومساعد ذكي — بالعربية والإنجليزية.",
     "invalidEmail": "أدخل بريدًا إلكترونيًا صحيحًا",
     "shortPassword": "يجب ألا تقل كلمة المرور عن ٦ أحرف",
-    "required": "هذا الحقل مطلوب"
+    "required": "هذا الحقل مطلوب",
+    "loginMethodPassword": "كلمة المرور",
+    "loginMethodOtp": "رمز لمرة واحدة",
+    "identifier": "البريد أو الجوال",
+    "identifierPlaceholder": "you@example.com أو 05X XXX XXXX",
+    "sendCode": "إرسال الرمز",
+    "otpTitle": "أدخل رمز التحقق",
+    "otpSentToEmail": "أرسلنا رمزًا مكوّنًا من ٦ أرقام إلى {email}.",
+    "otpCode": "رمز التحقق",
+    "verifyOtp": "تحقق",
+    "resend": "إعادة إرسال الرمز",
+    "back": "رجوع",
+    "invalidOtp": "رمز غير صحيح أو منتهٍ",
+    "invalidCredentials": "البريد أو كلمة المرور غير صحيحة",
+    "errorGeneric": "حدث خطأ. حاول مرة أخرى.",
+    "oauthError": "تعذّر تسجيل الدخول عبر هذا المزوّد"
   },
   "topbar": {
     "searchPlaceholder": "بحث…",

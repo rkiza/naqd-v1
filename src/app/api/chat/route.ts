@@ -1,5 +1,7 @@
-import { SYSTEM_PROMPT } from "./financial-context";
+import { systemPrompt } from "./financial-context";
 import { scriptedReply } from "./scripted";
+import { auth } from "@/auth";
+import { getFinanceContext } from "@/server/finance/get-finance-context";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,6 +63,7 @@ async function streamOpenRouterModel(
   model: string,
   messages: ChatMessage[],
   locale: "en" | "ar",
+  system: string,
 ) {
   const response = await fetch(OPENROUTER_URL, {
     method: "POST",
@@ -70,7 +73,7 @@ async function streamOpenRouterModel(
       max_tokens: 700,
       stream: true,
       messages: [
-        { role: "system", content: SYSTEM_PROMPT(locale) },
+        { role: "system", content: system },
         ...messages.map((m) => ({ role: m.role, content: m.content })),
       ],
     }),
@@ -125,6 +128,16 @@ async function streamOpenRouterModel(
 }
 
 export async function POST(req: Request) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  const finance = await getFinanceContext(session.user.id);
+  if (!finance) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   let body: { messages?: ChatMessage[]; locale?: string };
   try {
     body = await req.json();
@@ -147,15 +160,16 @@ export async function POST(req: Request) {
 
   const primaryModel = process.env.OPENROUTER_MODEL || DEFAULT_MODEL;
   const fallbackModel = process.env.OPENROUTER_FALLBACK_MODEL || DEFAULT_FALLBACK_MODEL;
+  const system = systemPrompt(locale, finance);
 
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        await streamOpenRouterModel(controller, apiKey, primaryModel, messages, locale);
+        await streamOpenRouterModel(controller, apiKey, primaryModel, messages, locale, system);
         controller.close();
       } catch {
         try {
-          await streamOpenRouterModel(controller, apiKey, fallbackModel, messages, locale);
+          await streamOpenRouterModel(controller, apiKey, fallbackModel, messages, locale, system);
           controller.close();
         } catch {
           // Both models failed -> seamless fallback to the scripted reply.

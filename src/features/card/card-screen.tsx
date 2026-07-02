@@ -21,7 +21,7 @@ import { Switch } from "@/components/ui/switch";
 import { CardVisual, RewardsPass } from "@/components/finance/card-visual";
 import { ApplePayButton } from "@/components/finance/apple-pay-button";
 import { WalletStack } from "./wallet-stack";
-import { card } from "@/data/finance";
+import { useFinance } from "@/components/finance/finance-provider";
 import { pick } from "@/lib/localized";
 import { formatNumber, formatPercent } from "@/lib/format";
 import { Money } from "@/components/ui/money";
@@ -29,6 +29,7 @@ import { Money } from "@/components/ui/money";
 export function CardScreen() {
   const locale = useLocale() as Locale;
   const t = useTranslations("card");
+  const { card } = useFinance();
   const [frozen, setFrozen] = useState(card.frozen);
   const [showDetails, setShowDetails] = useState(false);
   const [copied, setCopied] = useState(false);

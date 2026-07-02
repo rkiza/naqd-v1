@@ -10,14 +10,7 @@ import { Segmented } from "@/components/ui/segmented";
 import { Delta } from "@/components/ui/trend";
 import { AreaChart } from "@/components/charts/area-chart";
 import { DonutChart } from "@/components/charts/donut-chart";
-import {
-  holdings,
-  portfolioHistory,
-  portfolioValue,
-  portfolioGain,
-  portfolioGainPercent,
-  allocationTargets,
-} from "@/data/portfolio";
+import { useFinance } from "@/components/finance/finance-provider";
 import { pick } from "@/lib/localized";
 import { formatPercent, formatDate, formatNumber } from "@/lib/format";
 import { Money } from "@/components/ui/money";
@@ -29,26 +22,27 @@ export function PortfolioScreen() {
   const locale = useLocale() as Locale;
   const t = useTranslations("portfolio");
   const tp = useTranslations("periods");
-  const ta = useTranslations("portfolio");
+  const {
+    holdings,
+    portfolioHistory,
+    portfolioValue,
+    portfolioGain,
+    portfolioGainPercent,
+    allocationTargets,
+  } = useFinance();
   const [period, setPeriod] = useState<Period>("year");
   const [activeAlloc, setActiveAlloc] = useState<string | null>(null);
 
-  const data = useMemo(() => portfolioHistory.slice(-windows[period]), [period]);
+  const data = useMemo(() => portfolioHistory.slice(-windows[period]), [period, portfolioHistory]);
 
   const todayChange = useMemo(() => {
     const weighted = holdings.reduce((s, h) => s + h.dayChange * h.value, 0);
-    return weighted / portfolioValue;
-  }, []);
+    return portfolioValue > 0 ? weighted / portfolioValue : 0;
+  }, [holdings, portfolioValue]);
 
-  const allocSlices = allocationTargets.map((a) => ({
-    id: a.key,
-    label: ta(
-      `allocation${a.key.charAt(0).toUpperCase()}${a.key.slice(1)}` as
-        | "allocationStocks"
-        | "allocationFunds"
-        | "allocationSukuk"
-        | "allocationCommodities",
-    ),
+  const allocSlices = allocationTargets.map((a, i) => ({
+    id: String(i),
+    label: pick(a.label, locale),
     value: a.value,
     color: a.color,
   }));

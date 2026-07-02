@@ -14,7 +14,7 @@ import {
 import type { Locale } from "@/i18n/routing";
 import { Card } from "@/components/ui/card";
 import { Segmented } from "@/components/ui/segmented";
-import { notifications as seed } from "@/data/content";
+import { useFinance } from "@/components/finance/finance-provider";
 import type { Notification } from "@/data/types";
 import { pick } from "@/lib/localized";
 import { formatRelativeTime } from "@/lib/format";
@@ -38,7 +38,8 @@ const typeTone: Record<Notification["type"], string> = {
 export function NotificationsScreen() {
   const locale = useLocale() as Locale;
   const t = useTranslations("notifications");
-  const [items, setItems] = useState(seed);
+  const { notifications } = useFinance();
+  const [items, setItems] = useState(notifications);
   const [filter, setFilter] = useState<"all" | "unread">("all");
 
   const unread = items.filter((n) => !n.read).length;

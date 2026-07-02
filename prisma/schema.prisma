@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OtpPurpose {
+  REGISTER
+  LOGIN
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  emailVerifiedAt DateTime?
+  passwordHash    String?
+  name            Json?
+  firstName       Json?
+  phone           String?   @unique
+  handle          String?
+  tier            Json?
+  locale          String    @default("en")
+  image           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  accounts        Account[]
+  sessions        Session[]
+  otpChallenges   OtpChallenge[]
+  preferences     UserPreferences?
+  financeAccounts FinanceAccount[]
+  virtualCard     VirtualCard?
+  transactions    Transaction[]
+  holdings        Holding[]
+  goals           Goal[]
+  bills           Bill[]
+  beneficiaries   Beneficiary[]
+  notifications   Notification[]
+  insights        Insight[]
+  balanceSnapshots BalanceSnapshot[]
+  cashflowPoints  CashflowPoint[]
+  spendingSlices  SpendingSlice[]
+  marketPortfolio MarketPortfolio?
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  userAgent    String?
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OtpChallenge {
+  id             String     @id @default(cuid())
+  identifier     String
+  resolvedEmail  String
+  codeHash       String
+  purpose        OtpPurpose
+  attempts       Int        @default(0)
+  expiresAt      DateTime
+  consumedAt     DateTime?
+  metadata       Json?
+  userId         String?
+  createdAt      DateTime   @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([identifier, purpose, createdAt])
+}
+
+model UserPreferences {
+  userId        String  @id
+  biometric     Boolean @default(false)
+  twoFactor     Boolean @default(false)
+  hideBalances  Boolean @default(false)
+  push          Boolean @default(true)
+  emailReports  Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model FinanceAccount {
+  id       String @id @default(cuid())
+  userId   String
+  extId    String
+  name     Json
+  kind     String
+  number   String
+  balance  Float
+  currency String @default("SAR")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, extId])
+}
+
+model VirtualCard {
+  id              String  @id @default(cuid())
+  userId          String  @unique
+  extId           String
+  name            Json
+  holder          String
+  last4           String
+  expiry          String
+  network         String
+  kind            Json
+  frozen          Boolean @default(false)
+  monthlyLimit    Float
+  spentThisMonth  Float
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id       String @id @default(cuid())
+  userId   String
+  extId    String
+  merchant Json
+  note     Json?
+  category String
+  type     String
+  status   String
+  method   String
+  amount   Float
+  date     DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, extId])
+  @@index([userId, date])
+}
+
+model Holding {
+  id        String @id @default(cuid())
+  userId    String
+  extId     String
+  name      Json
+  symbol    String
+  kind      Json
+  market    Json
+  value     Float
+  cost      Float
+  units     Float
+  dayChange Float
+  color     String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, extId])
+}
+
+model Goal {
+  id     String @id @default(cuid())
+  userId String
+  extId  String
+  name   Json
+  target Float
+  saved  Float
+  color  String
+  icon   String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, extId])
+}
+
+model Bill {
+  id       String   @id @default(cuid())
+  userId   String
+  extId    String
+  biller   Json
+  category String
+  amount   Float
+  dueDate  DateTime
+  status   String
+  autopay  Boolean
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, extId])
+}
+
+model Beneficiary {
+  id       String  @id @default(cuid())
+  userId   String
+  extId    String
+  name     Json
+  bank     Json
+  iban     String
+  favorite Boolean
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, extId])
+}
+
+model Notification {
+  id     String   @id @default(cuid())
+  userId String
+  extId  String
+  type   String
+  title  Json
+  body   Json
+  date   DateTime
+  read   Boolean
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, extId])
+}
+
+model Insight {
+  id         String @id @default(cuid())
+  userId     String
+  extId      String
+  kind       String
+  title      Json
+  body       Json
+  metric     Float?
+  metricKind String?
+  tone       String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, extId])
+}
+
+model BalanceSnapshot {
+  id     String @id @default(cuid())
+  userId String
+  period String
+  value  Float
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, period])
+}
+
+model CashflowPoint {
+  id      String @id @default(cuid())
+  userId  String
+  period  String
+  income  Float
+  expense Float
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, period])
+}
+
+model SpendingSlice {
+  id       String @id @default(cuid())
+  userId   String
+  category String
+  amount   Float
+  change   Float
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category])
+}
+
+model MarketPortfolio {
+  id         String @id @default(cuid())
+  userId     String @unique
+  cash       Float
+  positions  Json
+  watchlist  Json
+  orders     Json
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

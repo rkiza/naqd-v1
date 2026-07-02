@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { DynamicIcon } from "@/components/ui/dynamic-icon";
-import { beneficiaries, bills } from "@/data/content";
+import { useFinance } from "@/components/finance/finance-provider";
 import { categories } from "@/data/categories";
 import { pick } from "@/lib/localized";
 import { formatDate } from "@/lib/format";
@@ -24,11 +24,12 @@ export function PaymentsScreen() {
   const locale = useLocale() as Locale;
   const t = useTranslations("payments");
   const tc = useTranslations("common");
+  const { beneficiaries, bills } = useFinance();
   const [amount, setAmount] = useState("500");
-  const [selected, setSelected] = useState(beneficiaries[0].id);
+  const [selected, setSelected] = useState(beneficiaries[0]?.id ?? "");
   const [sent, setSent] = useState(false);
 
-  const recipient = beneficiaries.find((b) => b.id === selected)!;
+  const recipient = beneficiaries.find((b) => b.id === selected);
 
   const numericAmount = Number(amount) || 0;
   const billsTotal = bills
@@ -197,7 +198,7 @@ export function PaymentsScreen() {
             <Money value={numericAmount} locale={locale} decimals={2} />
           </p>
           <p className="max-w-xs text-sm text-muted-foreground">
-            {t("send", { amount: "" }).trim()} · {pick(recipient.name, locale)}
+            {t("send", { amount: "" }).trim()} · {recipient ? pick(recipient.name, locale) : ""}
           </p>
           <Button className="mt-2 w-full" onClick={() => setSent(false)}>
             {tc("done")}

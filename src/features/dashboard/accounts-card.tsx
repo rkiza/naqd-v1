@@ -5,7 +5,7 @@ import { Wallet, PiggyBank, LineChart } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/routing";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { accounts } from "@/data/finance";
+import { useFinance } from "@/components/finance/finance-provider";
 import { pick } from "@/lib/localized";
 import { Money } from "@/components/ui/money";
 
@@ -15,6 +15,7 @@ export function AccountsCard() {
   const locale = useLocale() as Locale;
   const t = useTranslations("dashboard");
   const tc = useTranslations("common");
+  const { accounts } = useFinance();
 
   return (
     <Card>

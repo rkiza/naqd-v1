@@ -3,10 +3,11 @@
 import { useTranslations } from "next-intl";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { GoalRow } from "@/components/finance/goal-row";
-import { goals } from "@/data/finance";
+import { useFinance } from "@/components/finance/finance-provider";
 
 export function GoalsCard() {
   const t = useTranslations("dashboard");
+  const { goals } = useFinance();
   return (
     <Card>
       <CardHeader>

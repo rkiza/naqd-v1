@@ -7,7 +7,7 @@ import type { Locale } from "@/i18n/routing";
 import { Card } from "@/components/ui/card";
 import { Segmented } from "@/components/ui/segmented";
 import { TransactionRow } from "@/components/finance/transaction-row";
-import { transactions } from "@/data/transactions";
+import { useFinance } from "@/components/finance/finance-provider";
 import type { Transaction } from "@/data/types";
 import { formatDate } from "@/lib/format";
 
@@ -24,6 +24,7 @@ export function TransactionsScreen() {
   const locale = useLocale() as Locale;
   const t = useTranslations("transactions");
   const tc = useTranslations("common");
+  const { transactions } = useFinance();
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
 
@@ -55,7 +56,7 @@ export function TransactionsScreen() {
       groups: Array.from(map.entries()),
       count: filtered.length,
     };
-  }, [filter, query]);
+  }, [filter, query, transactions]);
 
   return (
     <div className="space-y-5">

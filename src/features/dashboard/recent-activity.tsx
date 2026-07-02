@@ -4,11 +4,12 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { TransactionRow } from "@/components/finance/transaction-row";
-import { transactions } from "@/data/transactions";
+import { useFinance } from "@/components/finance/finance-provider";
 
 export function RecentActivity() {
   const t = useTranslations("dashboard");
   const tc = useTranslations("common");
+  const { transactions } = useFinance();
 
   const recent = transactions
     .filter((tx) => tx.status === "completed")

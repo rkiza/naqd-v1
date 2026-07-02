@@ -6,7 +6,7 @@ import { Link } from "@/i18n/routing";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { DynamicIcon } from "@/components/ui/dynamic-icon";
 import { Badge } from "@/components/ui/badge";
-import { bills } from "@/data/content";
+import { useFinance } from "@/components/finance/finance-provider";
 import { categories } from "@/data/categories";
 import { pick } from "@/lib/localized";
 import { Money } from "@/components/ui/money";
@@ -17,6 +17,7 @@ export function UpcomingBills() {
   const t = useTranslations("dashboard");
   const tp = useTranslations("payments");
   const tc = useTranslations("common");
+  const { bills } = useFinance();
 
   const upcoming = bills.slice(0, 3);
 

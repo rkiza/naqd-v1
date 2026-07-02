@@ -3,15 +3,15 @@
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/routing";
 import { navGroups } from "@/config/navigation";
-import { notifications } from "@/data/content";
+import { useFinance } from "@/components/finance/finance-provider";
 import { cn } from "@/lib/utils";
-
-const unreadCount = notifications.filter((n) => !n.read).length;
 
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const tNav = useTranslations("nav");
   const tGroups = useTranslations("navGroups");
+  const { notifications } = useFinance();
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
     <nav className="flex flex-col gap-6">

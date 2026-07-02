@@ -10,14 +10,7 @@ import { CashflowBars } from "@/components/charts/bar-chart";
 import { AreaChart } from "@/components/charts/area-chart";
 import { DonutChart } from "@/components/charts/donut-chart";
 import { DynamicIcon } from "@/components/ui/dynamic-icon";
-import {
-  cashflow,
-  spendingByCategory,
-  monthlySpend,
-  monthlyIncome,
-  balanceHistory,
-  spendingPulse,
-} from "@/data/finance";
+import { useFinance } from "@/components/finance/finance-provider";
 import { categories } from "@/data/categories";
 import { pick } from "@/lib/localized";
 import { formatPercent, formatDate } from "@/lib/format";
@@ -26,6 +19,14 @@ import { Money } from "@/components/ui/money";
 export function AnalyticsScreen() {
   const locale = useLocale() as Locale;
   const t = useTranslations("analytics");
+  const {
+    cashflow,
+    spendingByCategory,
+    monthlySpend,
+    monthlyIncome,
+    balanceHistory,
+    spendingPulse,
+  } = useFinance();
   const [activeSlice, setActiveSlice] = useState<string | null>(null);
 
   const net = monthlyIncome - monthlySpend;

@@ -6,7 +6,7 @@ import { ArrowUp, Plus, Sparkles } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 import { LogoMark } from "@/components/brand/logo";
 import { Avatar } from "@/components/ui/avatar";
-import { user } from "@/data/finance";
+import { useFinance } from "@/components/finance/finance-provider";
 import { pick } from "@/lib/localized";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +15,7 @@ type Msg = { role: "user" | "assistant"; content: string };
 export function AssistantScreen() {
   const locale = useLocale() as Locale;
   const t = useTranslations("assistant");
+  const { user } = useFinance();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);

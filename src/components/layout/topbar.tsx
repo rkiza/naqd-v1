@@ -2,7 +2,7 @@
 
 import { useTranslations, useLocale } from "next-intl";
 import { Menu, Search, Bell, User, LogOut, ChevronDown } from "lucide-react";
-import { Link, usePathname } from "@/i18n/routing";
+import { Link, usePathname, useRouter } from "@/i18n/routing";
 import type { Locale } from "@/i18n/routing";
 import { navItems } from "@/config/navigation";
 import { Avatar } from "@/components/ui/avatar";
@@ -15,18 +15,24 @@ import {
 } from "@/components/ui/dropdown";
 import { LocaleSwitcher } from "./locale-switcher";
 import { ThemeSwitcher } from "./theme-switcher";
-import { user } from "@/data/finance";
-import { notifications } from "@/data/content";
+import { useFinance } from "@/components/finance/finance-provider";
 import { pick } from "@/lib/localized";
-
-const unread = notifications.filter((n) => !n.read).length;
 
 export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const locale = useLocale() as Locale;
   const pathname = usePathname();
+  const router = useRouter();
   const tNav = useTranslations("nav");
   const tTop = useTranslations("topbar");
   const tCommon = useTranslations("common");
+  const { user, notifications } = useFinance();
+
+  const unread = notifications.filter((n) => !n.read).length;
+
+  async function handleSignOut() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/");
+  }
 
   const active = navItems.find(
     (i) => pathname === i.href || pathname.startsWith(i.href + "/"),
@@ -95,11 +101,11 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
                 {tTop("viewProfile")}
               </DropdownItem>
             </Link>
-            <Link href="/">
+            <button type="button" onClick={handleSignOut}>
               <DropdownItem icon={<LogOut className="h-4 w-4" />}>
                 {tTop("signOut")}
               </DropdownItem>
-            </Link>
+            </button>
           </DropdownContent>
         </Dropdown>
       </div>

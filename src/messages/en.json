@@ -183,7 +183,22 @@
     "heroSubtitle": "Spending, investing, and an AI assistant — in Arabic and English.",
     "invalidEmail": "Enter a valid email address",
     "shortPassword": "Password must be at least 6 characters",
-    "required": "This field is required"
+    "required": "This field is required",
+    "loginMethodPassword": "Password",
+    "loginMethodOtp": "One-time code",
+    "identifier": "Email or phone",
+    "identifierPlaceholder": "you@example.com or 05X XXX XXXX",
+    "sendCode": "Send code",
+    "otpTitle": "Enter verification code",
+    "otpSentToEmail": "We sent a 6-digit code to {email}.",
+    "otpCode": "Verification code",
+    "verifyOtp": "Verify",
+    "resend": "Resend code",
+    "back": "Back",
+    "invalidOtp": "Invalid or expired code",
+    "invalidCredentials": "Invalid email or password",
+    "errorGeneric": "Something went wrong. Please try again.",
+    "oauthError": "Could not sign in with this provider"
   },
   "topbar": {
     "searchPlaceholder": "Search…",

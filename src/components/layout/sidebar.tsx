@@ -7,12 +7,13 @@ import type { Locale } from "@/i18n/routing";
 import { Logo } from "@/components/brand/logo";
 import { Avatar } from "@/components/ui/avatar";
 import { SidebarNav } from "./sidebar-nav";
-import { user } from "@/data/finance";
+import { useFinance } from "@/components/finance/finance-provider";
 import { pick } from "@/lib/localized";
 
 export function Sidebar() {
   const locale = useLocale() as Locale;
   const t = useTranslations("assistant");
+  const { user } = useFinance();
 
   return (
     <aside className="sticky top-0 hidden h-dvh w-[17rem] shrink-0 flex-col gap-6 border-e border-border bg-background/80 px-4 pb-5 pt-6 lg:flex">

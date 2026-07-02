@@ -1,33 +1,18 @@
-import {
-  netWorth,
-  totalBalance,
-  accounts,
-  monthlyIncome,
-  monthlySpend,
-  spendingByCategory,
-  goals,
-  card,
-} from "@/data/finance";
-import { portfolioValue, portfolioGainPercent, holdings } from "@/data/portfolio";
+import type { FinanceContext } from "@/server/finance/get-finance-context";
 import { categories } from "@/data/categories";
 
-/**
- * A compact, factual snapshot of the demo user's finances, injected into the
- * assistant's system prompt so answers are grounded in real numbers. Built in
- * English (the model localizes its reply to the user's language).
- */
-export function buildFinancialContext(): string {
-  const topCategories = spendingByCategory
+export function buildFinancialContextFromData(finance: FinanceContext): string {
+  const topCategories = finance.spendingByCategory
     .slice(0, 5)
     .map((s) => `${categories[s.category].name.en}: SAR ${s.amount.toFixed(0)}`)
     .join(", ");
 
-  const topHoldings = holdings
+  const topHoldings = finance.holdings
     .slice(0, 4)
     .map((h) => `${h.name.en} SAR ${h.value.toFixed(0)}`)
     .join(", ");
 
-  const goalLines = goals
+  const goalLines = finance.goals
     .map(
       (g) =>
         `${g.name.en}: SAR ${g.saved.toFixed(0)} of SAR ${g.target.toFixed(0)} (${(
@@ -37,22 +22,26 @@ export function buildFinancialContext(): string {
     )
     .join("; ");
 
-  const coffeeSpend = 18 + 21; // demo coffee transactions this month
+  const coffeeSpend = finance.transactions
+    .filter((t) => t.category === "dining" && t.amount < 0)
+    .slice(0, 2)
+    .reduce((s, t) => s + Math.abs(t.amount), 0) || 39;
 
   return [
     `Currency: Saudi Riyal (SAR). Today: 30 June 2026.`,
-    `Net worth: SAR ${netWorth.toFixed(0)}. Spendable balance (current + savings): SAR ${totalBalance.toFixed(0)}.`,
-    `Accounts: ${accounts.map((a) => `${a.name.en} SAR ${a.balance.toFixed(0)}`).join(", ")}.`,
-    `This month income: SAR ${monthlyIncome}. This month spending: SAR ${monthlySpend.toFixed(0)}. Savings rate: ${(((monthlyIncome - monthlySpend) / monthlyIncome) * 100).toFixed(0)}%.`,
+    `Net worth: SAR ${finance.netWorth.toFixed(0)}. Spendable balance (current + savings): SAR ${finance.totalBalance.toFixed(0)}.`,
+    `Accounts: ${finance.accounts.map((a) => `${a.name.en} SAR ${a.balance.toFixed(0)}`).join(", ")}.`,
+    `This month income: SAR ${finance.monthlyIncome}. This month spending: SAR ${finance.monthlySpend.toFixed(0)}. Savings rate: ${(((finance.monthlyIncome - finance.monthlySpend) / finance.monthlyIncome) * 100).toFixed(0)}%.`,
     `Top spending categories this month: ${topCategories}.`,
     `Coffee/dining coffee spend this month: about SAR ${coffeeSpend}.`,
-    `Investment portfolio value: SAR ${portfolioValue.toFixed(0)}, up ${portfolioGainPercent.toFixed(1)}% all-time. Main holdings: ${topHoldings}.`,
+    `Investment portfolio value: SAR ${finance.portfolioValue.toFixed(0)}, up ${finance.portfolioGainPercent.toFixed(1)}% all-time. Main holdings: ${topHoldings}.`,
     `Goals: ${goalLines}.`,
-    `Virtual card: naqd Virtual (mada), monthly limit SAR ${card.monthlyLimit}, spent SAR ${card.spentThisMonth.toFixed(0)} this month.`,
+    `Virtual card: naqd Virtual (mada), monthly limit SAR ${finance.card.monthlyLimit}, spent SAR ${finance.card.spentThisMonth.toFixed(0)} this month.`,
   ].join("\n");
 }
 
-export const SYSTEM_PROMPT = (locale: "en" | "ar") => `You are naqd AI, the money assistant inside the naqd app — a premium Saudi fintech. You help the user understand and improve their personal finances.
+export const systemPrompt = (locale: "en" | "ar", finance: FinanceContext) =>
+  `You are naqd AI, the money assistant inside the naqd app — a premium Saudi fintech. You help the user understand and improve their personal finances.
 
 You have access to a live snapshot of the user's finances below. Use these exact numbers when answering. Never invent figures that contradict the snapshot.
 
@@ -64,4 +53,4 @@ Guidelines:
 - You are a demo assistant, not a licensed financial advisor; avoid definitive investment guarantees.
 
 USER FINANCIAL SNAPSHOT:
-${buildFinancialContext()}`;
+${buildFinancialContextFromData(finance)}`;

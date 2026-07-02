@@ -6,12 +6,13 @@ import type { Locale } from "@/i18n/routing";
 import { StatCard } from "@/components/ui/stat-card";
 import { Delta } from "@/components/ui/trend";
 import { Money } from "@/components/ui/money";
-import { monthlyIncome, monthlySpend } from "@/data/finance";
+import { useFinance } from "@/components/finance/finance-provider";
 import { formatPercent } from "@/lib/format";
 
 export function MonthStats() {
   const locale = useLocale() as Locale;
   const t = useTranslations("dashboard");
+  const { monthlyIncome, monthlySpend } = useFinance();
 
   const saved = monthlyIncome - monthlySpend;
   const savingsRate = (saved / monthlyIncome) * 100;

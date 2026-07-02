@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import type { Locale } from "@/i18n/routing";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { DonutChart } from "@/components/charts/donut-chart";
-import { spendingByCategory, monthlySpend } from "@/data/finance";
+import { useFinance } from "@/components/finance/finance-provider";
 import { categories } from "@/data/categories";
 import { pick } from "@/lib/localized";
 import { Money } from "@/components/ui/money";
@@ -14,6 +14,7 @@ import { formatPercent } from "@/lib/format";
 export function SpendingBreakdown() {
   const locale = useLocale() as Locale;
   const t = useTranslations("dashboard");
+  const { spendingByCategory, monthlySpend } = useFinance();
   const [active, setActive] = useState<string | null>(null);
 
   const slices = spendingByCategory.slice(0, 6).map((s) => ({

@@ -30,16 +30,11 @@ type State = {
   orders: Order[];
 };
 
-const SEED: State = {
+const DEFAULT: State = {
   hydrated: false,
   cash: 92650.75,
-  positions: {
-    "2222": { units: 1200, avgCost: 24.5 },
-    "1120": { units: 280, avgCost: 73.2 },
-    AAPL: { units: 25, avgCost: 190.4 },
-    NVDA: { units: 40, avgCost: 96.1 },
-  },
-  watchlist: ["2010", "TSLA", "1211"],
+  positions: {},
+  watchlist: [],
   orders: [],
 };
 
@@ -73,7 +68,14 @@ function reducer(state: State, action: Action): State {
         cash: state.cash - cost,
         positions: { ...state.positions, [action.symbol]: { units, avgCost } },
         orders: [
-          { id: `o${Date.now()}`, symbol: action.symbol, side: "buy" as const, units: action.units, price: action.price, ts: Date.now() },
+          {
+            id: `o${Date.now()}`,
+            symbol: action.symbol,
+            side: "buy" as const,
+            units: action.units,
+            price: action.price,
+            ts: Date.now(),
+          },
           ...state.orders,
         ].slice(0, 40),
       };
@@ -91,7 +93,14 @@ function reducer(state: State, action: Action): State {
         cash: state.cash + proceeds,
         positions,
         orders: [
-          { id: `o${Date.now()}`, symbol: action.symbol, side: "sell" as const, units: action.units, price: action.price, ts: Date.now() },
+          {
+            id: `o${Date.now()}`,
+            symbol: action.symbol,
+            side: "sell" as const,
+            units: action.units,
+            price: action.price,
+            ts: Date.now(),
+          },
           ...state.orders,
         ].slice(0, 40),
       };
@@ -106,13 +115,11 @@ function reducer(state: State, action: Action): State {
       };
     }
     case "RESET":
-      return { ...SEED, hydrated: true };
+      return { ...DEFAULT, hydrated: true };
     default:
       return state;
   }
 }
-
-const STORAGE_KEY = "naqd-market-v1";
 
 type Ctx = State & {
   buy: (symbol: string, units: number, price: number) => void;
@@ -123,29 +130,51 @@ type Ctx = State & {
 
 const MarketContext = createContext<Ctx | null>(null);
 
-export function MarketProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, SEED);
+async function persistPortfolio(state: State) {
+  const { cash, positions, watchlist, orders } = state;
+  await fetch("/api/markets/portfolio", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ cash, positions, watchlist, orders }),
+  }).catch(() => undefined);
+}
 
-  // Hydrate from localStorage once on mount.
+export function MarketProvider({ children }: { children: ReactNode }) {
+  const [state, dispatch] = useReducer(reducer, DEFAULT);
+
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) dispatch({ type: "HYDRATE", payload: JSON.parse(raw) });
-      else dispatch({ type: "HYDRATE", payload: {} });
-    } catch {
-      dispatch({ type: "HYDRATE", payload: {} });
-    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/markets/portfolio");
+        if (!res.ok) {
+          if (!cancelled) dispatch({ type: "HYDRATE", payload: {} });
+          return;
+        }
+        const data = await res.json();
+        if (!cancelled) {
+          dispatch({
+            type: "HYDRATE",
+            payload: {
+              cash: data.cash,
+              positions: data.positions ?? {},
+              watchlist: data.watchlist ?? [],
+              orders: data.orders ?? [],
+            },
+          });
+        }
+      } catch {
+        if (!cancelled) dispatch({ type: "HYDRATE", payload: {} });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  // Persist on change (after hydration).
   useEffect(() => {
     if (!state.hydrated) return;
-    const { cash, positions, watchlist, orders } = state;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ cash, positions, watchlist, orders }));
-    } catch {
-      /* ignore quota errors */
-    }
+    void persistPortfolio(state);
   }, [state]);
 
   const value: Ctx = {

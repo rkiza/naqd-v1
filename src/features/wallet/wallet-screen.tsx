@@ -9,8 +9,7 @@ import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/ui/stat-card";
 import { Sparkline } from "@/components/charts/sparkline";
 import { TransactionRow } from "@/components/finance/transaction-row";
-import { accounts, totalBalance, balanceHistory } from "@/data/finance";
-import { transactions } from "@/data/transactions";
+import { useFinance } from "@/components/finance/finance-provider";
 import { pick } from "@/lib/localized";
 import { Money } from "@/components/ui/money";
 
@@ -20,6 +19,7 @@ export function WalletScreen() {
   const locale = useLocale() as Locale;
   const t = useTranslations("wallet");
   const tc = useTranslations("common");
+  const { accounts, totalBalance, balanceHistory, transactions } = useFinance();
 
   const monthTx = transactions.filter(
     (tx) => tx.status === "completed" && tx.date.startsWith("2026-06"),

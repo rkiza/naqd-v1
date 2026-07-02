@@ -18,14 +18,14 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
-import { Link, useRouter, usePathname } from "@/i18n/routing";
+import { useRouter, usePathname } from "@/i18n/routing";
 import { useParams } from "next/navigation";
 import { Card, CardBody, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Segmented } from "@/components/ui/segmented";
-import { user } from "@/data/finance";
+import { useFinance } from "@/components/finance/finance-provider";
 import { pick } from "@/lib/localized";
 import { locales, localeLabels } from "@/i18n/routing";
 import { formatDate } from "@/lib/format";
@@ -59,11 +59,13 @@ export function SettingsScreen() {
   const locale = useLocale() as Locale;
   const t = useTranslations("settings");
   const tc = useTranslations("common");
+  const { user } = useFinance();
   const { resolvedTheme, setTheme } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
   const params = useParams();
   const [mounted, setMounted] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [prefs, setPrefs] = useState({
     biometric: true,
     twoFactor: true,
@@ -78,6 +80,17 @@ export function SettingsScreen() {
     if (next === locale) return;
     // @ts-expect-error -- untyped pathname passthrough
     router.replace({ pathname, params }, { locale: next });
+  }
+
+  async function signOut() {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.replace("/login");
+    } finally {
+      setSigningOut(false);
+    }
   }
 
   return (
@@ -241,12 +254,17 @@ export function SettingsScreen() {
               <ChevronLeft className="h-4 w-4 rotate-180 text-subtle-foreground rtl:rotate-0" />
             </button>
           ))}
-          <Link href="/" className="flex items-center gap-3 py-3 text-negative transition-colors hover:opacity-80">
+          <button
+            type="button"
+            onClick={signOut}
+            disabled={signingOut}
+            className="flex w-full items-center gap-3 py-3 text-negative transition-colors hover:opacity-80 disabled:opacity-60"
+          >
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-negative-soft">
               <LogOut className="h-[1.15rem] w-[1.15rem]" />
             </span>
-            <span className="flex-1 text-sm font-medium">{t("signOut")}</span>
-          </Link>
+            <span className="flex-1 text-start text-sm font-medium">{t("signOut")}</span>
+          </button>
         </CardContent>
       </Card>
 

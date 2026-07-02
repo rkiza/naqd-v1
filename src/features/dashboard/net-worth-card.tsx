@@ -8,21 +8,22 @@ import { Segmented } from "@/components/ui/segmented";
 import { Delta } from "@/components/ui/trend";
 import { AreaChart } from "@/components/charts/area-chart";
 import { Money } from "@/components/ui/money";
-import { balanceHistory } from "@/data/finance";
+import { useFinance } from "@/components/finance/finance-provider";
 import { formatDate } from "@/lib/format";
 
 type Period = "quarter" | "halfYear" | "year" | "all";
 const windows: Record<Period, number> = { quarter: 3, halfYear: 6, year: 12, all: 12 };
 
-export function NetWorthCard({ netWorth }: { netWorth: number }) {
+export function NetWorthCard() {
   const locale = useLocale() as Locale;
   const t = useTranslations("dashboard");
   const tp = useTranslations("periods");
+  const { netWorth, balanceHistory } = useFinance();
   const [period, setPeriod] = useState<Period>("year");
 
   const data = useMemo(
     () => balanceHistory.slice(-windows[period]),
-    [period],
+    [period, balanceHistory],
   );
 
   const change = useMemo(() => {

@@ -14,7 +14,7 @@ import {
 import type { Locale } from "@/i18n/routing";
 import { Card, CardBody } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { insights } from "@/data/content";
+import { useFinance } from "@/components/finance/finance-provider";
 import type { Insight } from "@/data/types";
 import { pick } from "@/lib/localized";
 import { formatPercent } from "@/lib/format";
@@ -38,6 +38,7 @@ const toneClasses: Record<Insight["tone"], { ring: string; icon: string; chip: s
 export function InsightsScreen() {
   const locale = useLocale() as Locale;
   const t = useTranslations("insights");
+  const { insights } = useFinance();
 
   const kindLabel = (k: Insight["kind"]) =>
     t(`kind${k.charAt(0).toUpperCase()}${k.slice(1)}` as
