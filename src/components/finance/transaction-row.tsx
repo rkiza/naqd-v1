@@ -1,5 +1,6 @@
 "use client";
 
+import type { KeyboardEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { Locale } from "@/i18n/routing";
 import type { Transaction } from "@/data/types";
@@ -14,15 +15,19 @@ export function TransactionRow({
   tx,
   showDate = false,
   className,
+  onClick,
 }: {
   tx: Transaction;
   showDate?: boolean;
   className?: string;
+  /** When provided, the row becomes an interactive button that fires this. */
+  onClick?: () => void;
 }) {
   const locale = useLocale() as Locale;
   const t = useTranslations("transactions");
   const category = categories[tx.category];
   const income = tx.amount > 0;
+  const interactive = Boolean(onClick);
 
   const methodLabel = {
     card: t("methodCard"),
@@ -33,8 +38,23 @@ export function TransactionRow({
 
   return (
     <div
+      {...(interactive
+        ? {
+            role: "button" as const,
+            tabIndex: 0,
+            onClick,
+            onKeyDown: (e: KeyboardEvent) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick?.();
+              }
+            },
+          }
+        : {})}
       className={cn(
         "flex items-center gap-3 rounded-2xl px-2 py-2.5 transition-colors hover:bg-surface-muted",
+        interactive &&
+          "cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
         className,
       )}
     >

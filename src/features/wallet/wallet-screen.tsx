@@ -10,9 +10,11 @@ import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/ui/stat-card";
 import { Sparkline } from "@/components/charts/sparkline";
 import { TransactionRow } from "@/components/finance/transaction-row";
+import { TransactionDetailPanel } from "@/components/finance/transaction-detail-panel";
 import { useFinance } from "@/components/finance/finance-provider";
 import { pick } from "@/lib/localized";
 import { Money } from "@/components/ui/money";
+import type { Transaction } from "@/data/types";
 import { TopUpDialog } from "./topup-dialog";
 
 const icons = { current: Wallet, savings: PiggyBank, investment: LineChart };
@@ -23,6 +25,7 @@ export function WalletScreen() {
   const tc = useTranslations("common");
   const { accounts, totalBalance, balanceHistory, transactions } = useFinance();
   const [topUpOpen, setTopUpOpen] = useState(false);
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
   const monthTx = transactions.filter(
     (tx) => tx.status === "completed" && tx.date.startsWith("2026-06"),
@@ -125,12 +128,18 @@ export function WalletScreen() {
         </CardHeader>
         <CardContent className="space-y-0.5">
           {transactions.filter((tx) => tx.status === "completed").slice(0, 7).map((tx) => (
-            <TransactionRow key={tx.id} tx={tx} showDate />
+            <TransactionRow key={tx.id} tx={tx} showDate onClick={() => setSelectedTx(tx)} />
           ))}
         </CardContent>
       </Card>
 
       <TopUpDialog open={topUpOpen} onClose={() => setTopUpOpen(false)} accounts={accounts} />
+
+      <TransactionDetailPanel
+        tx={selectedTx}
+        open={selectedTx !== null}
+        onClose={() => setSelectedTx(null)}
+      />
     </div>
   );
 }

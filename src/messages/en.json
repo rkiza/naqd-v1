@@ -267,7 +267,8 @@
     "topupConfirm": "Add money",
     "topupProcessing": "Processing…",
     "topupDone": "Money added",
-    "topupDoneBody": "Your top-up was credited to {account}.",
+    "topupDoneBody": "Credited to {account}",
+    "topupNewBalance": "New balance",
     "topupError": "Something went wrong. Please try again."
   },
   "transactions": {
@@ -298,7 +299,14 @@
     "upcoming": "Upcoming",
     "groupToday": "Today",
     "groupYesterday": "Yesterday",
-    "groupEarlier": "Earlier"
+    "groupEarlier": "Earlier",
+    "details": "Transaction details",
+    "type": "Type",
+    "note": "Note",
+    "reference": "Reference",
+    "typeIncome": "Income",
+    "typeExpense": "Expense",
+    "typeTransfer": "Transfer"
   },
   "payments": {
     "title": "Payments",

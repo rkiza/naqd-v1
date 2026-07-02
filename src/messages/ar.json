@@ -267,7 +267,8 @@
     "topupConfirm": "إضافة الأموال",
     "topupProcessing": "جارٍ المعالجة…",
     "topupDone": "تمت إضافة الأموال",
-    "topupDoneBody": "تمت إضافة مبلغ الشحن إلى {account}.",
+    "topupDoneBody": "أُضيفت إلى {account}",
+    "topupNewBalance": "الرصيد الجديد",
     "topupError": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
   },
   "transactions": {
@@ -298,7 +299,14 @@
     "upcoming": "القادمة",
     "groupToday": "اليوم",
     "groupYesterday": "أمس",
-    "groupEarlier": "سابقًا"
+    "groupEarlier": "سابقًا",
+    "details": "تفاصيل العملية",
+    "type": "النوع",
+    "note": "ملاحظة",
+    "reference": "المرجع",
+    "typeIncome": "دخل",
+    "typeExpense": "مصروف",
+    "typeTransfer": "تحويل"
   },
   "payments": {
     "title": "المدفوعات",
