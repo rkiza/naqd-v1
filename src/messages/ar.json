@@ -259,7 +259,16 @@
     "moneyIn": "وارد",
     "moneyOut": "صادر",
     "recentMovement": "آخر الحركات",
-    "viewStatement": "عرض كشف الحساب"
+    "viewStatement": "عرض كشف الحساب",
+    "topupTitle": "إضافة أموال إلى محفظتك",
+    "topupSubtitle": "شحن تجريبي — يُضاف فوراً إلى الحساب المحدد.",
+    "topupAmount": "المبلغ",
+    "topupTo": "الإضافة إلى",
+    "topupConfirm": "إضافة الأموال",
+    "topupProcessing": "جارٍ المعالجة…",
+    "topupDone": "تمت إضافة الأموال",
+    "topupDoneBody": "تمت إضافة مبلغ الشحن إلى {account}.",
+    "topupError": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
   },
   "transactions": {
     "title": "العمليات",

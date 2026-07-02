@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Wallet, PiggyBank, LineChart, Plus, ArrowLeftRight, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
@@ -12,6 +13,7 @@ import { TransactionRow } from "@/components/finance/transaction-row";
 import { useFinance } from "@/components/finance/finance-provider";
 import { pick } from "@/lib/localized";
 import { Money } from "@/components/ui/money";
+import { TopUpDialog } from "./topup-dialog";
 
 const icons = { current: Wallet, savings: PiggyBank, investment: LineChart };
 
@@ -20,6 +22,7 @@ export function WalletScreen() {
   const t = useTranslations("wallet");
   const tc = useTranslations("common");
   const { accounts, totalBalance, balanceHistory, transactions } = useFinance();
+  const [topUpOpen, setTopUpOpen] = useState(false);
 
   const monthTx = transactions.filter(
     (tx) => tx.status === "completed" && tx.date.startsWith("2026-06"),
@@ -44,7 +47,7 @@ export function WalletScreen() {
               {t("across", { count: accounts.length })}
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
-              <Button size="sm">
+              <Button size="sm" onClick={() => setTopUpOpen(true)}>
                 <Plus className="h-4 w-4" />
                 {t("addMoney")}
               </Button>
@@ -126,6 +129,8 @@ export function WalletScreen() {
           ))}
         </CardContent>
       </Card>
+
+      <TopUpDialog open={topUpOpen} onClose={() => setTopUpOpen(false)} accounts={accounts} />
     </div>
   );
 }

@@ -259,7 +259,16 @@
     "moneyIn": "Money in",
     "moneyOut": "Money out",
     "recentMovement": "Recent movement",
-    "viewStatement": "View statement"
+    "viewStatement": "View statement",
+    "topupTitle": "Add money to your wallet",
+    "topupSubtitle": "Simulated top-up — credited instantly to the selected account.",
+    "topupAmount": "Amount",
+    "topupTo": "Add to",
+    "topupConfirm": "Add money",
+    "topupProcessing": "Processing…",
+    "topupDone": "Money added",
+    "topupDoneBody": "Your top-up was credited to {account}.",
+    "topupError": "Something went wrong. Please try again."
   },
   "transactions": {
     "title": "Transactions",
