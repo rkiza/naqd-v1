@@ -343,7 +343,10 @@
     "off": "Off",
     "sending": "Sending…",
     "moneySent": "Money sent",
-    "sentTo": "Sent to {name}"
+    "sentTo": "Sent to {name}",
+    "paying": "Paying…",
+    "billPaid": "Bill paid",
+    "paidTo": "Paid to {name}"
   },
   "card": {
     "title": "Virtual Card",

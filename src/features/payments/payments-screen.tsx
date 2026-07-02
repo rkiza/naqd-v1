@@ -36,6 +36,7 @@ export function PaymentsScreen() {
   const [selected, setSelected] = useState(beneficiaries[0]?.id ?? "");
   const [sent, setSent] = useState(false);
   const [sendPhase, setSendPhase] = useState<"processing" | "done">("processing");
+  const [payKind, setPayKind] = useState<"send" | "bill">("send");
   const [sentAmount, setSentAmount] = useState(0);
   const [sentTo, setSentTo] = useState("");
   const [detailBeneficiary, setDetailBeneficiary] = useState<Beneficiary | null>(null);
@@ -45,15 +46,26 @@ export function PaymentsScreen() {
 
   const numericAmount = Number(amount) || 0;
 
-  async function handleSend() {
-    if (numericAmount <= 0) return;
-    setSentAmount(numericAmount);
-    setSentTo(recipient ? pick(recipient.name, locale) : "");
+  /** Runs the processing → animated success flow for a send or a bill payment. */
+  async function runPayment(kind: "send" | "bill", amountValue: number, name: string) {
+    if (amountValue <= 0) return;
+    setPayKind(kind);
+    setSentAmount(amountValue);
+    setSentTo(name);
     setSendPhase("processing");
     setSent(true);
     // Brief simulated settlement delay before the result resolves.
     await new Promise((r) => setTimeout(r, 1500));
     setSendPhase("done");
+  }
+
+  function handleSend() {
+    runPayment("send", numericAmount, recipient ? pick(recipient.name, locale) : "");
+  }
+
+  function handlePayBill(bill: Bill) {
+    setDetailBill(null);
+    runPayment("bill", bill.amount, pick(bill.biller, locale));
   }
   const billsTotal = bills
     .filter((b) => b.status !== "paid")
@@ -217,7 +229,7 @@ export function PaymentsScreen() {
                     className="h-7 px-3 text-xs"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setDetailBill(bill);
+                      handlePayBill(bill);
                     }}
                   >
                     {t("payNow")}
@@ -233,14 +245,20 @@ export function PaymentsScreen() {
         </CardContent>
       </Card>
 
-      {/* Send money — processing → animated success */}
-      <Dialog open={sent} onClose={() => setSent(false)} title={t("sendMoney")}>
+      {/* Send / pay — processing → animated success */}
+      <Dialog
+        open={sent}
+        onClose={() => setSent(false)}
+        title={payKind === "bill" ? t("payBills") : t("sendMoney")}
+      >
         {sendPhase === "processing" ? (
           <div className="flex flex-col items-center gap-5 py-8 text-center">
             <div className="grid h-20 w-20 place-items-center">
               <span className="block h-11 w-11 animate-spin rounded-full border-[3px] border-primary/15 border-t-primary" />
             </div>
-            <p className="text-lg font-semibold text-foreground">{t("sending")}</p>
+            <p className="text-lg font-semibold text-foreground">
+              {payKind === "bill" ? t("paying") : t("sending")}
+            </p>
             <p className="text-3xl font-semibold tracking-tight text-foreground/70">
               <Money value={sentAmount} locale={locale} decimals={2} />
             </p>
@@ -258,9 +276,13 @@ export function PaymentsScreen() {
                 <AnimatedCheck />
               </span>
             </motion.span>
-            <p className="text-lg font-semibold text-foreground">{t("moneySent")}</p>
+            <p className="text-lg font-semibold text-foreground">
+              {payKind === "bill" ? t("billPaid") : t("moneySent")}
+            </p>
             <p className="max-w-xs text-sm text-muted-foreground">
-              {t("sentTo", { name: sentTo })}
+              {payKind === "bill"
+                ? t("paidTo", { name: sentTo })
+                : t("sentTo", { name: sentTo })}
             </p>
             <p className="text-3xl font-semibold tracking-tight text-foreground">
               <CountUpMoney from={0} to={sentAmount} locale={locale} decimals={2} duration={0.9} />
@@ -288,7 +310,7 @@ export function PaymentsScreen() {
         bill={detailBill}
         open={detailBill !== null}
         onClose={() => setDetailBill(null)}
-        onPay={() => setDetailBill(null)}
+        onPay={() => detailBill && handlePayBill(detailBill)}
       />
     </div>
   );

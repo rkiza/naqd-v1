@@ -7,6 +7,7 @@ import type { Locale } from "@/i18n/routing";
 import { Card } from "@/components/ui/card";
 import { Segmented } from "@/components/ui/segmented";
 import { TransactionRow } from "@/components/finance/transaction-row";
+import { TransactionDetailPanel } from "@/components/finance/transaction-detail-panel";
 import { useFinance } from "@/components/finance/finance-provider";
 import type { Transaction } from "@/data/types";
 import { formatDate } from "@/lib/format";
@@ -27,6 +28,7 @@ export function TransactionsScreen() {
   const { transactions } = useFinance();
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
+  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
 
   const { upcoming, groups, count } = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -111,7 +113,7 @@ export function TransactionsScreen() {
           <Card>
             <div className="space-y-0.5 p-2">
               {upcoming.map((tx) => (
-                <TransactionRow key={tx.id} tx={tx} showDate />
+                <TransactionRow key={tx.id} tx={tx} showDate onClick={() => setSelectedTx(tx)} />
               ))}
             </div>
           </Card>
@@ -127,12 +129,18 @@ export function TransactionsScreen() {
           <Card>
             <div className="space-y-0.5 p-2">
               {items.map((tx) => (
-                <TransactionRow key={tx.id} tx={tx} />
+                <TransactionRow key={tx.id} tx={tx} onClick={() => setSelectedTx(tx)} />
               ))}
             </div>
           </Card>
         </section>
       ))}
+
+      <TransactionDetailPanel
+        tx={selectedTx}
+        open={selectedTx !== null}
+        onClose={() => setSelectedTx(null)}
+      />
     </div>
   );
 }
