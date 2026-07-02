@@ -39,12 +39,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user?.id) {
         token.sub = user.id;
+        // Persist role into the token so no per-request DB call is needed in
+        // middleware (which runs on the edge). Sourced from the provider's
+        // returned user / the Prisma adapter user.
+        const role = (user as { role?: "USER" | "ADMIN" }).role;
+        if (role) token.role = role;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user && token.sub) {
         session.user.id = token.sub;
+        session.user.role = ((token.role as "USER" | "ADMIN" | undefined) ?? "USER");
       }
       return session;
     },

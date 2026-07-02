@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
 import { loc } from "@/lib/localized";
+import { logActivity } from "@/server/admin/audit";
 
 /** Simulated wallet top-up. Credits a finance account and records an income
  * transaction, persisting both to the demo user's data in the database. */
@@ -70,6 +71,14 @@ export async function POST(req: Request) {
       data: { balance: { increment: rounded } },
     }),
   ]);
+
+  await logActivity({
+    action: "wallet.topup",
+    userId,
+    email: session.user.email ?? null,
+    detail: `Top-up SAR ${rounded.toLocaleString("en-US")} to ${account.number}`,
+    req,
+  });
 
   return NextResponse.json({
     ok: true,

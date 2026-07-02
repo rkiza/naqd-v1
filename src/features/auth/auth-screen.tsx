@@ -212,6 +212,7 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
           redirect: false,
         });
         if (result?.error) throw new Error(t("invalidCredentials"));
+        void fetch("/api/activity/login", { method: "POST" }).catch(() => {});
         markWelcomeToast();
         router.push("/dashboard");
       } else {
@@ -251,6 +252,7 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
         redirect: false,
       });
       if (result?.error) throw new Error(t("invalidOtp"));
+      void fetch("/api/activity/login", { method: "POST" }).catch(() => {});
       markWelcomeToast(t(otpPurpose === "login" ? "welcomeBack" : "verificationSuccess"));
       router.push("/dashboard");
     } catch (err) {

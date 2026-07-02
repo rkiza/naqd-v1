@@ -32,6 +32,7 @@ const passwordProvider = Credentials({
     return {
       id: user.id,
       email: user.email,
+      role: user.role,
       name: typeof user.name === "object" && user.name && "en" in user.name ? String((user.name as { en: string }).en) : user.email,
       image: user.image,
     };
@@ -91,6 +92,7 @@ const otpProvider = Credentials({
     return {
       id: user.id,
       email: user.email,
+      role: user.role,
       name: typeof user.name === "object" && user.name && "en" in user.name ? String((user.name as { en: string }).en) : user.email,
       image: user.image,
     };

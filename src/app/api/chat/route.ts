@@ -3,6 +3,7 @@ import { scriptedReply } from "./scripted";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { getFinanceContext } from "@/server/finance/get-finance-context";
+import { logActivity } from "@/server/admin/audit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -164,6 +165,13 @@ export async function POST(req: Request) {
   }
   await prisma.chatMessage.create({
     data: { conversationId, role: "user", content: lastUser },
+  });
+  await logActivity({
+    action: "assistant.message",
+    userId,
+    email: session.user.email ?? null,
+    detail: lastUser.length > 80 ? `${lastUser.slice(0, 80)}…` : lastUser,
+    req,
   });
 
   const apiKey = process.env.OPENROUTER_API_KEY;

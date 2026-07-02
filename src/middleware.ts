@@ -20,8 +20,11 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
   const { locale, path } = stripLocale(pathname);
   const isAuthed = !!req.auth?.user?.id;
+  const isAdminArea = path === "/admin" || path.startsWith("/admin/");
 
-  if (protectedSlugs.has(path) && !isAuthed) {
+  // /admin requires auth here (first line); the role check is enforced
+  // authoritatively against the DB in the admin layout (requireAdmin).
+  if ((protectedSlugs.has(path) || isAdminArea) && !isAuthed) {
     const loginUrl = new URL(`/${locale}/login`, req.url);
     loginUrl.searchParams.set("next", path);
     return NextResponse.redirect(loginUrl);
