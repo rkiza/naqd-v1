@@ -79,7 +79,7 @@ export async function SiteFooter() {
       links: [
         { label: t("linkPrivacy"), href: "#" },
         { label: t("linkTerms"), href: "#" },
-        { label: t("linkSecurity"), href: "#security" },
+        { label: t("linkSecurity"), href: "#" },
       ],
     },
     {

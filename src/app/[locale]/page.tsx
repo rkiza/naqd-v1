@@ -1,13 +1,5 @@
 import { setRequestLocale, getTranslations, getLocale } from "next-intl/server";
-import {
-  ArrowRight,
-  Sparkles,
-  CreditCard,
-  TrendingUp,
-  Languages,
-  ShieldCheck,
-  CandlestickChart,
-} from "lucide-react";
+import { ArrowRight, Sparkles, CreditCard, CandlestickChart } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import type { Locale } from "@/i18n/routing";
 import { Logo } from "@/components/brand/logo";
@@ -34,13 +26,6 @@ export default async function LandingPage({
   const t = await getTranslations("landing");
   const tc = await getTranslations("common");
   const lc = (await getLocale()) as Locale;
-
-  const features = [
-    { icon: CreditCard, title: t("feature1Title"), body: t("feature1Body") },
-    { icon: TrendingUp, title: t("feature2Title"), body: t("feature2Body") },
-    { icon: Sparkles, title: t("feature3Title"), body: t("feature3Body") },
-    { icon: Languages, title: t("feature4Title"), body: t("feature4Body") },
-  ];
 
   const stats = [
     { value: "48,000+", label: t("statsUsers") },
@@ -70,7 +55,6 @@ export default async function LandingPage({
             <nav className="hidden items-center gap-7 text-sm font-medium text-white/70 md:flex">
               <a href="#preview" className="hover:text-white">{t("navFeatures")}</a>
               <a href="#markets" className="hover:text-white">{t("liveMarkets")}</a>
-              <a href="#security" className="hover:text-white">{t("navSecurity")}</a>
             </nav>
             <div className="flex items-center gap-2">
               <LocaleSwitcher compact />
@@ -216,77 +200,7 @@ export default async function LandingPage({
           }
         />
 
-        {/* ── Bilingual showcase ────────────────────────────────── */}
-        <section className="py-16 lg:py-24">
-          <div className="mx-auto max-w-2xl text-center">
-            <span className="grid mx-auto h-11 w-11 place-items-center rounded-xl bg-brand-soft text-primary-strong">
-              <Languages className="h-5 w-5" />
-            </span>
-            <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              {t("bilingualTitle")}
-            </h2>
-            <p className="mt-4 text-balance text-muted-foreground">{t("bilingualBody")}</p>
-          </div>
-          <div className="mt-12 grid gap-6 md:grid-cols-2">
-            <div>
-              <div className="mb-3 flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                <span className="rounded-md bg-accent px-2 py-0.5 text-xs">EN</span>
-                {t("englishLabel")}
-              </div>
-              <BrowserFrame src="/mockups/dashboard.png" alt="naqd in English" />
-            </div>
-            <div>
-              <div className="mb-3 flex items-center justify-end gap-2 text-sm font-medium text-muted-foreground" dir="rtl">
-                <span className="rounded-md bg-accent px-2 py-0.5 text-xs">AR</span>
-                {t("arabicLabel")}
-              </div>
-              <BrowserFrame src="/mockups/dashboard-ar.png" alt="naqd in Arabic" url="naqd.sa/ar" />
-            </div>
-          </div>
-        </section>
-
-        {/* ── Features grid ─────────────────────────────────────── */}
-        <section id="features" className="pb-16">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {features.map((f) => (
-              <div
-                key={f.title}
-                className="rounded-2xl border border-border bg-card p-6 shadow-xs transition-all hover:-translate-y-1 hover:shadow-md"
-              >
-                <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-primary-strong">
-                  <f.icon className="h-5 w-5" />
-                </span>
-                <h3 className="mt-4 text-base font-semibold text-foreground">{f.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{f.body}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── Security band ─────────────────────────────────────── */}
-        <section
-          id="security"
-          className="mb-16 flex flex-col items-center gap-4 rounded-3xl border border-border bg-gradient-to-br from-brand-soft/60 to-card p-10 text-center lg:p-16"
-        >
-          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-card text-primary shadow-sm">
-            <ShieldCheck className="h-6 w-6" />
-          </span>
-          <h2 className="max-w-xl text-balance text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-            {t("trustedBy")}
-          </h2>
-          <div className="mt-2 flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg">
-              <Link href="/dashboard">
-                {t("ctaPrimary")}
-                <ArrowRight className="h-4 w-4 rtl-flip" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/register">{t("createAccount")}</Link>
-            </Button>
-          </div>
-        </section>
-
+        <div className="pb-8" />
       </div>
 
       <SiteFooter />
