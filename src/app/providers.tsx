@@ -5,6 +5,7 @@ import { SessionProvider } from "next-auth/react";
 import type { ReactNode } from "react";
 import { MarketProvider } from "@/features/markets/store";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeColorMeta } from "@/components/layout/theme-color-meta";
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
@@ -17,6 +18,7 @@ export function Providers({ children }: { children: ReactNode }) {
         storageKey="naqd-theme"
       >
         <MarketProvider>
+          <ThemeColorMeta />
           {children}
           <Toaster />
         </MarketProvider>

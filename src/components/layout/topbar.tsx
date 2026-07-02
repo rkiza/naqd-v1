@@ -80,7 +80,7 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
         </Link>
 
         <Dropdown>
-          <DropdownTrigger className="flex h-10 items-center gap-2 rounded-xl border border-border bg-surface ps-1 pe-2 hover:bg-accent">
+          <DropdownTrigger className="flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface ps-1 pe-1 hover:bg-accent sm:pe-2">
             <Avatar name={pick(user.name, locale)} size="sm" />
             <ChevronDown className="hidden h-4 w-4 text-muted-foreground sm:block" />
           </DropdownTrigger>

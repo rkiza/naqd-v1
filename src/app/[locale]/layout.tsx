@@ -22,10 +22,10 @@ export const viewport: Viewport = {
   // Extend the app under the device safe areas (notch / status bar) so we can
   // paint them ourselves — see the safe-area padding on the sticky topbar.
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0e1213" },
-  ],
+  // Single default (light surface). The app theme is manual (next-themes class,
+  // not prefers-color-scheme), so <ThemeColorMeta> keeps this in sync with the
+  // resolved theme on the client — otherwise the safe area ignores dark mode.
+  themeColor: "#ffffff",
 };
 
 export function generateStaticParams() {

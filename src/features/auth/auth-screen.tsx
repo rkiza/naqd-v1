@@ -79,12 +79,16 @@ function Field({
 }
 
 function SocialButton({
-  label,
+  name,
+  srLabel,
   children,
   onClick,
   disabled,
 }: {
-  label: string;
+  /** Short brand name shown on the button, e.g. "Apple". */
+  name: string;
+  /** Full accessible label, e.g. "Continue with Apple". */
+  srLabel: string;
   children: React.ReactNode;
   onClick: () => void;
   disabled?: boolean;
@@ -94,10 +98,11 @@ function SocialButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
+      aria-label={srLabel}
       className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-surface text-sm font-medium text-foreground transition-colors hover:bg-accent disabled:opacity-50"
     >
       {children}
-      <span className="whitespace-nowrap">{label}</span>
+      <span className="whitespace-nowrap">{name}</span>
     </button>
   );
 }
@@ -371,7 +376,8 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
 
                 <div className="mt-6 flex gap-3">
                   <SocialButton
-                    label={t("continueApple")}
+                    name="Apple"
+                    srLabel={t("continueApple")}
                     onClick={() => handleSocial("apple")}
                     disabled={loading}
                   >
@@ -380,7 +386,8 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
                     </svg>
                   </SocialButton>
                   <SocialButton
-                    label={t("continueGoogle")}
+                    name="Google"
+                    srLabel={t("continueGoogle")}
                     onClick={() => handleSocial("google")}
                     disabled={loading}
                   >
