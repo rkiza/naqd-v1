@@ -3,6 +3,7 @@ import { scriptedReply } from "./scripted";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { getFinanceContext } from "@/server/finance/get-finance-context";
+import { getDashboardOrg } from "@/server/company/get-company-context";
 import { logActivity } from "@/server/admin/audit";
 
 export const runtime = "nodejs";
@@ -131,6 +132,10 @@ export async function POST(req: Request) {
     return new Response("Unauthorized", { status: 401 });
   }
 
+  // Resolve company role/membership from the DB (confidentiality boundary — not
+  // the JWT). Owners get the employee snapshot injected; employees get none.
+  const org = await getDashboardOrg(userId);
+
   let body: { messages?: ChatMessage[]; locale?: string; conversationId?: string };
   try {
     body = await req.json();
@@ -177,7 +182,7 @@ export async function POST(req: Request) {
   const apiKey = process.env.OPENROUTER_API_KEY;
   const primaryModel = process.env.OPENROUTER_MODEL || DEFAULT_MODEL;
   const fallbackModel = process.env.OPENROUTER_FALLBACK_MODEL || DEFAULT_FALLBACK_MODEL;
-  const system = systemPrompt(locale, finance);
+  const system = systemPrompt(locale, finance, org);
   const convoId = conversationId;
 
   const parts: string[] = [];
