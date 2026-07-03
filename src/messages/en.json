@@ -694,5 +694,22 @@
     "yourLimit": "Your monthly limit",
     "spentThisMonth": "Spent this month",
     "actionRestricted": "Not permitted by your company"
+  },
+  "demo": {
+    "title": "Explore naqd",
+    "subtitle": "Pick a demo account and jump straight in — no signup required.",
+    "badgePersonal": "Personal",
+    "badgeOwner": "Business owner",
+    "badgeEmployee": "Employee",
+    "descPersonal": "The full personal experience — wallet, cards, investing, and the AI assistant.",
+    "descOwner": "Company console — manage employees, fund wallets, and ask the AI about your team.",
+    "descEmployee": "Scoped employee view — own wallet and spend, with permission-gated actions.",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "sharedPassword": "Every demo account uses the password",
+    "backToLogin": "Back to sign in",
+    "orSignInManually": "Prefer to type it yourself?",
+    "error": "Could not sign in. Please try again.",
+    "tryDemoLink": "Try a demo account"
   }
 }

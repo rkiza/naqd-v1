@@ -112,6 +112,7 @@ function SocialButton({
 
 export function AuthScreen({ mode }: { mode: "login" | "register" }) {
   const t = useTranslations("auth");
+  const tDemo = useTranslations("demo");
   const locale = useLocale();
   const isRegister = mode === "register";
 
@@ -575,6 +576,14 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
                       error={errors.password}
                       autoComplete={isRegister ? "new-password" : "current-password"}
                     />
+                  )}
+
+                  {!isRegister && (
+                    <div className="flex justify-end">
+                      <Link href="/demo" className="text-sm font-medium text-primary-strong hover:underline">
+                        {tDemo("tryDemoLink")}
+                      </Link>
+                    </div>
                   )}
 
                   {apiError && <p className="text-sm text-negative">{apiError}</p>}
