@@ -13,6 +13,8 @@ import {
   Loader2,
   Eye,
   EyeOff,
+  Building2,
+  Hash,
 } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { OtpInput } from "@/features/auth/otp-input";
@@ -26,6 +28,7 @@ import { markWelcomeToast } from "@/lib/auth/welcome-toast";
 type Step = "form" | "otp";
 type LoginMethod = "password" | "otp";
 type OtpPurpose = "verify" | "login";
+type AccountKind = "personal" | "commercial";
 
 const DEMO_EMAIL = "fahad@naqd.sa";
 const DEMO_PASSWORD = "demo1234";
@@ -136,12 +139,15 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
 
   const [step, setStep] = useState<Step>("form");
   const [loginMethod, setLoginMethod] = useState<LoginMethod>("password");
+  const [accountKind, setAccountKind] = useState<AccountKind>("personal");
   const [form, setForm] = useState({
     name: "",
     email: isRegister ? "" : DEMO_EMAIL,
     phone: "",
     password: isRegister ? "" : DEMO_PASSWORD,
     identifier: "",
+    companyName: "",
+    crNumber: "",
   });
   const [otp, setOtp] = useState("");
   const [otpPurpose, setOtpPurpose] = useState<OtpPurpose>("verify");
@@ -175,6 +181,8 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
       if (!form.name.trim()) next.name = t("required");
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) next.email = t("invalidEmail");
       if (form.password.length < 6) next.password = t("shortPassword");
+      if (accountKind === "commercial" && !form.companyName.trim())
+        next.companyName = t("companyNameRequired");
     } else if (loginMethod === "password") {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) next.email = t("invalidEmail");
       if (!form.password) next.password = t("required");
@@ -197,6 +205,9 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
             phone: form.phone,
             password: form.password,
             locale,
+            accountType: accountKind === "commercial" ? "COMMERCIAL" : "PERSONAL",
+            companyName: accountKind === "commercial" ? form.companyName : undefined,
+            crNumber: accountKind === "commercial" ? form.crNumber : undefined,
           }),
         });
         const data = await res.json();
@@ -429,6 +440,34 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
                   <span className="h-px flex-1 bg-border" />
                 </div>
 
+                {isRegister && (
+                  <div className="mb-4 grid grid-cols-2 gap-2.5">
+                    {(["personal", "commercial"] as const).map((kind) => {
+                      const active = accountKind === kind;
+                      const Icon = kind === "personal" ? User : Building2;
+                      return (
+                        <button
+                          key={kind}
+                          type="button"
+                          onClick={() => setAccountKind(kind)}
+                          aria-pressed={active}
+                          className={`flex flex-col items-start gap-1 rounded-xl border p-3 text-start transition-colors ${active ? "border-primary bg-primary/5" : "border-border bg-surface hover:bg-accent"}`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <Icon className={`h-4 w-4 ${active ? "text-primary-strong" : "text-muted-foreground"}`} />
+                            <span className="text-sm font-semibold text-foreground">
+                              {t(kind === "personal" ? "accountPersonal" : "accountCommercial")}
+                            </span>
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {t(kind === "personal" ? "accountPersonalDesc" : "accountCommercialDesc")}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
                 {!isRegister && (
                   <div className="mb-4 flex rounded-xl border border-border bg-surface p-1">
                     <button
@@ -459,6 +498,29 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
                       error={errors.name}
                       autoComplete="name"
                     />
+                  )}
+
+                  {isRegister && accountKind === "commercial" && (
+                    <>
+                      <Field
+                        icon={<Building2 className="h-4 w-4" />}
+                        label={t("companyName")}
+                        placeholder={t("companyNamePlaceholder")}
+                        value={form.companyName}
+                        onChange={(e) => set("companyName", e.target.value)}
+                        error={errors.companyName}
+                        autoComplete="organization"
+                      />
+                      <Field
+                        icon={<Hash className="h-4 w-4" />}
+                        label={t("crNumber")}
+                        dir="ltr"
+                        inputMode="numeric"
+                        placeholder={t("crNumberPlaceholder")}
+                        value={form.crNumber}
+                        onChange={(e) => set("crNumber", e.target.value.replace(/\D/g, "").slice(0, 10))}
+                      />
+                    </>
                   )}
 
                   {!isRegister && loginMethod === "otp" ? (

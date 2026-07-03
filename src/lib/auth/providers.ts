@@ -23,19 +23,16 @@ const passwordProvider = Credentials({
 
     if (!isEmail(email) || !password) return null;
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { companyMembership: true },
+    });
     if (!user?.passwordHash || !user.emailVerifiedAt) return null;
 
     const valid = await verifyPassword(password, user.passwordHash);
     if (!valid) return null;
 
-    return {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      name: typeof user.name === "object" && user.name && "en" in user.name ? String((user.name as { en: string }).en) : user.email,
-      image: user.image,
-    };
+    return sessionUser(user);
   },
 });
 
@@ -76,7 +73,19 @@ const otpProvider = Credentials({
         where: { id: userId },
         data: { emailVerifiedAt: new Date() },
       });
-      await seedUserFinance(userId);
+      const meta = challenge.metadata as { company?: { name?: string; crNumber?: string | null } } | null;
+      if (meta?.company?.name) {
+        // Commercial registration: seed treasury + create the Company & OWNER
+        // membership. Dynamic import keeps the seeder (and bcrypt) out of any
+        // edge bundle that statically imports this auth config.
+        const { seedCompany } = await import("@/server/company/seed-company");
+        await seedCompany(userId, {
+          name: meta.company.name,
+          crNumber: meta.company.crNumber ?? undefined,
+        });
+      } else {
+        await seedUserFinance(userId);
+      }
     } else if (challenge.purpose === OtpPurpose.LOGIN) {
       if (!userId) {
         const user = await prisma.user.findUnique({ where: { email: challenge.resolvedEmail } });
@@ -86,18 +95,42 @@ const otpProvider = Credentials({
 
     if (!userId) return null;
 
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { companyMembership: true },
+    });
     if (!user) return null;
 
-    return {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      name: typeof user.name === "object" && user.name && "en" in user.name ? String((user.name as { en: string }).en) : user.email,
-      image: user.image,
-    };
+    return sessionUser(user);
   },
 });
+
+type UserWithMembership = {
+  id: string;
+  email: string;
+  role: "USER" | "ADMIN";
+  accountType: "PERSONAL" | "COMMERCIAL";
+  name: unknown;
+  image: string | null;
+  companyMembership: { role: "OWNER" | "EMPLOYEE"; companyId: string } | null;
+};
+
+/** Shape a Prisma user (with membership) into the Auth.js `User` returned by authorize. */
+function sessionUser(user: UserWithMembership) {
+  return {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    accountType: user.accountType,
+    companyRole: user.companyMembership?.role ?? null,
+    companyId: user.companyMembership?.companyId ?? null,
+    name:
+      typeof user.name === "object" && user.name && "en" in user.name
+        ? String((user.name as { en: string }).en)
+        : user.email,
+    image: user.image,
+  };
+}
 
 /** All Auth.js providers — Google, Apple, password, and OTP in one place. */
 export function authProviders(): NextAuthConfig["providers"] {

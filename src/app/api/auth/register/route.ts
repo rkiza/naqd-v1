@@ -9,7 +9,7 @@ import {
 import { canSendOtp, createOtpChallenge } from "@/lib/auth/rate-limit";
 import { sendOtpEmail } from "@/lib/email/resend";
 import { isEmail, normalizeEmail, normalizePhone, splitName } from "@/lib/auth/resolve-user";
-import { OtpPurpose } from "@prisma/client";
+import { AccountType, OtpPurpose } from "@prisma/client";
 import { loc } from "@/lib/localized";
 
 export async function POST(req: Request) {
@@ -19,6 +19,9 @@ export async function POST(req: Request) {
     phone?: string;
     password?: string;
     locale?: string;
+    accountType?: string;
+    companyName?: string;
+    crNumber?: string;
   };
   try {
     body = await req.json();
@@ -32,9 +35,15 @@ export async function POST(req: Request) {
   const password = body.password ?? "";
   const phoneRaw = body.phone?.trim();
   const phone = phoneRaw ? normalizePhone(phoneRaw) : null;
+  const isCommercial = body.accountType === "COMMERCIAL";
+  const companyName = body.companyName?.trim() ?? "";
+  const crNumber = body.crNumber?.trim() || null;
 
   if (!name || !isEmail(email) || password.length < 6) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+  }
+  if (isCommercial && !companyName) {
+    return NextResponse.json({ error: "Company name is required" }, { status: 400 });
   }
 
   const existing = await prisma.user.findUnique({ where: { email } });
@@ -55,9 +64,10 @@ export async function POST(req: Request) {
       email,
       passwordHash,
       phone: phone ?? undefined,
+      accountType: isCommercial ? AccountType.COMMERCIAL : AccountType.PERSONAL,
       name: splitName(name),
       firstName: { en: name.split(" ")[0] ?? name, ar: name.split(" ")[0] ?? name },
-      tier: loc("naqd", "نقد"),
+      tier: isCommercial ? loc("naqd Business", "نقد للأعمال") : loc("naqd", "نقد"),
       handle: `@${email.split("@")[0]}`,
       locale,
     },
@@ -75,6 +85,7 @@ export async function POST(req: Request) {
     codeHash: hashOtp(code),
     purpose: OtpPurpose.REGISTER,
     userId: user.id,
+    metadata: isCommercial ? { company: { name: companyName, crNumber } } : undefined,
     expiresAt: otpExpiryDate(),
   });
 
