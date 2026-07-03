@@ -21,10 +21,11 @@ export default auth((req) => {
   const { locale, path } = stripLocale(pathname);
   const isAuthed = !!req.auth?.user?.id;
   const isAdminArea = path === "/admin" || path.startsWith("/admin/");
+  const isCompanyArea = path === "/company" || path.startsWith("/company/");
 
-  // /admin requires auth here (first line); the role check is enforced
-  // authoritatively against the DB in the admin layout (requireAdmin).
-  if ((protectedSlugs.has(path) || isAdminArea) && !isAuthed) {
+  // /admin and /company require auth here (first line); the role/ownership check
+  // is enforced authoritatively against the DB in each area's layout guard.
+  if ((protectedSlugs.has(path) || isAdminArea || isCompanyArea) && !isAuthed) {
     const loginUrl = new URL(`/${locale}/login`, req.url);
     loginUrl.searchParams.set("next", path);
     return NextResponse.redirect(loginUrl);

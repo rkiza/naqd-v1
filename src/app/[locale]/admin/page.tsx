@@ -1,4 +1,4 @@
-import { Users, MessagesSquare, LogIn, Activity, Shield, MessageCircle } from "lucide-react";
+import { Users, MessagesSquare, LogIn, Activity, Shield, Building2, UserCog, MessageCircle } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { Link } from "@/i18n/routing";
 import { PageTitle, StatTile, Panel, Empty, ActionChip, Ip, fmtDateTime } from "@/features/admin/ui";
@@ -8,10 +8,12 @@ export const dynamic = "force-dynamic";
 export default async function AdminOverviewPage() {
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-  const [users, admins, conversations, messages, logins24h, actions24h, recent] =
+  const [users, admins, companies, employees, conversations, messages, logins24h, actions24h, recent] =
     await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { role: "ADMIN" } }),
+      prisma.company.count(),
+      prisma.companyMembership.count({ where: { role: "EMPLOYEE" } }),
       prisma.conversation.count(),
       prisma.chatMessage.count(),
       prisma.auditLog.count({ where: { action: "auth.login", createdAt: { gte: since } } }),
@@ -27,8 +29,10 @@ export default async function AdminOverviewPage() {
     <div>
       <PageTitle title="Overview" subtitle="System activity at a glance." />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatTile label="Users" value={users} icon={<Users className="h-4 w-4" />} />
+        <StatTile label="Companies" value={companies} icon={<Building2 className="h-4 w-4" />} />
+        <StatTile label="Employees" value={employees} icon={<UserCog className="h-4 w-4" />} />
         <StatTile label="Admins" value={admins} icon={<Shield className="h-4 w-4" />} />
         <StatTile label="Chats" value={conversations} icon={<MessagesSquare className="h-4 w-4" />} />
         <StatTile label="Messages" value={messages} icon={<MessageCircle className="h-4 w-4" />} />

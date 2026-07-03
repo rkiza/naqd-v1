@@ -2,38 +2,25 @@
 
 import { useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import {
-  LayoutDashboard,
-  Users,
-  Building2,
-  MessagesSquare,
-  Activity,
-  LogIn,
-  Shield,
-  ArrowLeft,
-  Menu,
-  X,
-} from "lucide-react";
+import { LayoutDashboard, Users, Building2, ArrowLeft, Menu, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/admin", label: "Overview", icon: LayoutDashboard },
-  { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/companies", label: "Companies", icon: Building2 },
-  { href: "/admin/chats", label: "Chats", icon: MessagesSquare },
-  { href: "/admin/activity", label: "Activity", icon: Activity },
-  { href: "/admin/logins", label: "Logins", icon: LogIn },
+  { href: "/company", key: "overview", icon: LayoutDashboard },
+  { href: "/company/employees", key: "employees", icon: Users },
 ] as const;
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const t = useTranslations("company");
   return (
     <nav className="space-y-0.5">
       {NAV.map((item) => {
         const active =
-          item.href === "/admin"
-            ? pathname === "/admin"
+          item.href === "/company"
+            ? pathname === "/company"
             : pathname === item.href || pathname.startsWith(item.href + "/");
         const Icon = item.icon;
         return (
@@ -50,7 +37,7 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
             )}
           >
             <Icon className={cn("h-[1.15rem] w-[1.15rem] shrink-0", active && "text-primary")} />
-            {item.label}
+            {t(item.key)}
           </Link>
         );
       })}
@@ -58,24 +45,27 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-export function AdminShell({
-  adminEmail,
+export function CompanyShell({
+  companyName,
+  ownerEmail,
   children,
 }: {
-  adminEmail: string;
+  companyName: string;
+  ownerEmail: string;
   children: ReactNode;
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const t = useTranslations("company");
 
   return (
     <div className="flex min-h-dvh bg-background">
       {/* Sidebar — desktop */}
       <aside className="hidden w-64 shrink-0 flex-col border-e border-border bg-surface/40 p-4 lg:flex">
-        <Brand />
+        <Brand companyName={companyName} />
         <div className="mt-6 flex-1">
           <NavList />
         </div>
-        <BackToApp />
+        <BackToApp label={t("backToApp")} />
       </aside>
 
       {/* Sidebar — mobile drawer */}
@@ -97,7 +87,7 @@ export function AdminShell({
               transition={{ type: "spring", stiffness: 380, damping: 38 }}
             >
               <div className="flex items-center justify-between">
-                <Brand />
+                <Brand companyName={companyName} />
                 <button
                   onClick={() => setDrawerOpen(false)}
                   className="grid h-9 w-9 place-items-center rounded-xl text-muted-foreground hover:bg-accent"
@@ -109,7 +99,7 @@ export function AdminShell({
               <div className="mt-6 flex-1">
                 <NavList onNavigate={() => setDrawerOpen(false)} />
               </div>
-              <BackToApp />
+              <BackToApp label={t("backToApp")} />
             </motion.aside>
           </div>
         )}
@@ -126,9 +116,9 @@ export function AdminShell({
             <Menu className="h-5 w-5" />
           </button>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-foreground">Admin console</p>
+            <p className="truncate text-sm font-semibold text-foreground">{t("console")}</p>
           </div>
-          <span className="hidden truncate text-xs text-muted-foreground sm:block">{adminEmail}</span>
+          <span className="hidden truncate text-xs text-muted-foreground sm:block">{ownerEmail}</span>
         </header>
         <main className="min-w-0 flex-1 px-4 py-6 sm:px-6">
           <div className="mx-auto w-full max-w-[1100px]">{children}</div>
@@ -138,28 +128,29 @@ export function AdminShell({
   );
 }
 
-function Brand() {
+function Brand({ companyName }: { companyName: string }) {
+  const t = useTranslations("company");
   return (
     <div className="flex items-center gap-2.5 px-1">
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-foreground text-background">
-        <Shield className="h-4.5 w-4.5" />
+      <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground">
+        <Building2 className="h-4.5 w-4.5" />
       </span>
-      <div>
-        <p className="text-sm font-semibold text-foreground">naqd Admin</p>
-        <p className="text-[0.7rem] text-subtle-foreground">System console</p>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold text-foreground">{companyName}</p>
+        <p className="text-[0.7rem] text-subtle-foreground">{t("brandSub")}</p>
       </div>
     </div>
   );
 }
 
-function BackToApp() {
+function BackToApp({ label }: { label: string }) {
   return (
     <Link
       href="/dashboard"
       className="mt-3 flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface/60 hover:text-foreground"
     >
       <ArrowLeft className="h-4 w-4 rtl-flip" />
-      Back to app
+      {label}
     </Link>
   );
 }

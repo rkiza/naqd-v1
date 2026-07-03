@@ -70,10 +70,42 @@ export function RoleChip({ role }: { role: "USER" | "ADMIN" }) {
   );
 }
 
+/** Personal vs Business account-type badge for the admin views. */
+export function AccountTypeChip({ type }: { type: "PERSONAL" | "COMMERCIAL" }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-2 py-0.5 text-[0.7rem] font-medium",
+        type === "COMMERCIAL" ? "bg-info-soft text-info" : "bg-surface-muted text-muted-foreground",
+      )}
+    >
+      {type === "COMMERCIAL" ? "Business" : "Personal"}
+    </span>
+  );
+}
+
+/** Owner / Employee company-role badge; renders nothing for non-members. */
+export function CompanyRoleChip({ role }: { role: "OWNER" | "EMPLOYEE" | null | undefined }) {
+  if (!role) return <span className="text-subtle-foreground">—</span>;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-2 py-0.5 text-[0.7rem] font-medium",
+        role === "OWNER" ? "bg-brand-soft text-primary-strong" : "bg-surface-muted text-muted-foreground",
+      )}
+    >
+      {role === "OWNER" ? "Owner" : "Employee"}
+    </span>
+  );
+}
+
 const ACTION_STYLES: Record<string, string> = {
   "auth.login": "bg-info-soft text-info",
   "wallet.topup": "bg-positive-soft text-positive",
   "assistant.message": "bg-brand-soft text-primary-strong",
+  "company.employee.add": "bg-brand-soft text-primary-strong",
+  "company.access.update": "bg-info-soft text-info",
+  "company.fund": "bg-positive-soft text-positive",
 };
 
 export function ActionChip({ action }: { action: string }) {
