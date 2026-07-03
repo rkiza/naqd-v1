@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { Link } from "@/i18n/routing";
 import { PageTitle, Panel, Empty, fmtDateTime } from "@/features/admin/ui";
 
 export const dynamic = "force-dynamic";
@@ -87,7 +88,9 @@ export default async function AdminCompaniesPage() {
               {rows.map((r) => (
                 <tr key={r.id} className="border-b border-border/60 last:border-0">
                   <td className="px-5 py-2.5">
-                    <p className="font-medium text-foreground">{r.name}</p>
+                    <Link href={`/admin/companies/${r.id}`} className="font-medium text-foreground hover:underline">
+                      {r.name}
+                    </Link>
                     {r.crNumber && <p className="font-mono text-xs text-subtle-foreground" dir="ltr">CR {r.crNumber}</p>}
                   </td>
                   <td className="px-5 py-2.5 text-muted-foreground" dir="ltr">{r.ownerEmail}</td>
