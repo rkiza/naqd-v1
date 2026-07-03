@@ -17,10 +17,21 @@ enum Role {
   ADMIN
 }
 
+enum AccountType {
+  PERSONAL
+  COMMERCIAL
+}
+
+enum CompanyRole {
+  OWNER
+  EMPLOYEE
+}
+
 model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  role            Role      @default(USER)
+  id              String      @id @default(cuid())
+  email           String      @unique
+  role            Role        @default(USER)
+  accountType     AccountType @default(PERSONAL)
   emailVerifiedAt DateTime?
   passwordHash    String?
   name            Json?
@@ -52,6 +63,39 @@ model User {
   marketPortfolio MarketPortfolio?
   conversations   Conversation[]
   auditLogs       AuditLog[]
+
+  ownedCompany      Company?           @relation("CompanyOwner")
+  companyMembership CompanyMembership?
+}
+
+model Company {
+  id          String   @id @default(cuid())
+  name        Json
+  crNumber    String?
+  currency    String   @default("SAR")
+  ownerUserId String   @unique
+  createdAt   DateTime @default(now())
+
+  owner   User                @relation("CompanyOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  members CompanyMembership[]
+}
+
+model CompanyMembership {
+  id         String      @id @default(cuid())
+  companyId  String
+  userId     String      @unique
+  role       CompanyRole @default(EMPLOYEE)
+  title      Json?
+  canTopup   Boolean     @default(false)
+  canSpend   Boolean     @default(true)
+  spendLimit Float?
+  createdAt  DateTime    @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, userId])
+  @@index([companyId])
 }
 
 model Account {
