@@ -4,6 +4,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { FinanceProvider } from "@/components/finance/finance-provider";
 import { auth } from "@/auth";
 import { getFinanceContext } from "@/server/finance/get-finance-context";
+import { getDashboardOrg } from "@/server/company/get-company-context";
 
 export default async function AppLayout({
   children,
@@ -25,8 +26,12 @@ export default async function AppLayout({
     redirect(`/${locale}/login`);
   }
 
+  // Attach company/membership context (DB-authoritative). Owners get the full
+  // treasury + employee snapshot; employees get only their own access flags.
+  const org = await getDashboardOrg(session.user.id);
+
   return (
-    <FinanceProvider value={finance}>
+    <FinanceProvider value={{ ...finance, ...org }}>
       <AppShell>{children}</AppShell>
     </FinanceProvider>
   );

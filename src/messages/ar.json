@@ -684,6 +684,15 @@
     "copied": "تم النسخ",
     "done": "تم",
     "addError": "تعذّر إضافة الموظف.",
-    "emailInUse": "هذا البريد الإلكتروني مسجّل بالفعل."
+    "emailInUse": "هذا البريد الإلكتروني مسجّل بالفعل.",
+    "yourCompany": "شركتك",
+    "openConsole": "فتح اللوحة",
+    "teamLeaderboard": "إنفاق الفريق هذا الشهر",
+    "ofLimit": "من الحد",
+    "noActivityYet": "لا يوجد نشاط بعد",
+    "memberBanner": "أنت ضمن فريق {company}.",
+    "yourLimit": "حدك الشهري",
+    "spentThisMonth": "المصروف هذا الشهر",
+    "actionRestricted": "غير مسموح به من قبل شركتك"
   }
 }

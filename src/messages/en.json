@@ -684,6 +684,15 @@
     "copied": "Copied",
     "done": "Done",
     "addError": "Could not add employee.",
-    "emailInUse": "That email is already registered."
+    "emailInUse": "That email is already registered.",
+    "yourCompany": "Your company",
+    "openConsole": "Open console",
+    "teamLeaderboard": "Team spending this month",
+    "ofLimit": "of limit",
+    "noActivityYet": "No activity yet",
+    "memberBanner": "You're on the {company} team.",
+    "yourLimit": "Your monthly limit",
+    "spentThisMonth": "Spent this month",
+    "actionRestricted": "Not permitted by your company"
   }
 }

@@ -124,6 +124,84 @@ export async function getCompanyContext(companyId: string): Promise<CompanyConte
   };
 }
 
+export type MembershipInfo = {
+  role: CompanyRole;
+  canSpend: boolean;
+  canTopup: boolean;
+  spendLimit: number | null;
+  companyName: Localized;
+};
+
+export type CompanyDashboard = {
+  id: string;
+  name: Localized;
+  treasury: number;
+  employeeCount: number;
+  totalEmployeeWallet: number;
+  totalEmployeeSpend: number;
+  employees: Array<{
+    id: string;
+    name: Localized;
+    title: Localized | null;
+    walletBalance: number;
+    monthSpend: number;
+    spendLimit: number | null;
+    canSpend: boolean;
+    canTopup: boolean;
+    lastActivity: string | null;
+  }>;
+};
+
+/**
+ * Company context attached to a user's dashboard finance data. Owners receive
+ * the full `company` snapshot (treasury + employees); every member (owner or
+ * employee) receives their own `membership` flags. Personal users get neither.
+ */
+export async function getDashboardOrg(
+  userId: string,
+): Promise<{ company?: CompanyDashboard; membership?: MembershipInfo }> {
+  const membership = await prisma.companyMembership.findUnique({
+    where: { userId },
+    include: { company: { select: { id: true, name: true } } },
+  });
+  if (!membership) return {};
+
+  const info: MembershipInfo = {
+    role: membership.role,
+    canSpend: membership.canSpend,
+    canTopup: membership.canTopup,
+    spendLimit: membership.spendLimit,
+    companyName: asLocalized(membership.company.name, loc("Company", "شركة")),
+  };
+
+  if (membership.role !== "OWNER") return { membership: info };
+
+  const ctx = await getCompanyContext(membership.companyId);
+  if (!ctx) return { membership: info };
+
+  const company: CompanyDashboard = {
+    id: ctx.company.id,
+    name: ctx.company.name,
+    treasury: ctx.treasury,
+    employeeCount: ctx.employeeCount,
+    totalEmployeeWallet: ctx.totalEmployeeWallet,
+    totalEmployeeSpend: ctx.totalEmployeeSpend,
+    employees: ctx.employees.map((e) => ({
+      id: e.userId,
+      name: e.name,
+      title: e.title,
+      walletBalance: e.walletBalance,
+      monthSpend: e.monthSpend,
+      spendLimit: e.spendLimit,
+      canSpend: e.canSpend,
+      canTopup: e.canTopup,
+      lastActivity: e.lastActivity,
+    })),
+  };
+
+  return { membership: info, company };
+}
+
 /** Single-employee detail for the owner, verifying company ownership of the row. */
 export async function getCompanyEmployee(companyId: string, userId: string) {
   const membership = await prisma.companyMembership.findFirst({

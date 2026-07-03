@@ -10,6 +10,8 @@ import { AccountsCard } from "@/features/dashboard/accounts-card";
 import { GoalsCard } from "@/features/dashboard/goals-card";
 import { UpcomingBills } from "@/features/dashboard/upcoming-bills";
 import { AskAiCard } from "@/features/dashboard/ask-ai-card";
+import { CompanyDashboard } from "@/features/company/company-dashboard";
+import { EmployeeBanner } from "@/features/company/employee-banner";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("nav");
@@ -27,6 +29,9 @@ export default async function DashboardPage({
   return (
     <div className="space-y-6">
       <DashboardHeader />
+
+      <EmployeeBanner />
+      <CompanyDashboard />
 
       <MonthStats />
 

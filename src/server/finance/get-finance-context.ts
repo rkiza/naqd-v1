@@ -15,6 +15,7 @@ import type {
 } from "@/data/types";
 import type { Localized } from "@/lib/localized";
 import { loc } from "@/lib/localized";
+import type { CompanyDashboard, MembershipInfo } from "@/server/company/get-company-context";
 
 export type FinanceUser = {
   name: Localized;
@@ -58,6 +59,10 @@ export type FinanceContext = {
     watchlist: string[];
     orders: unknown[];
   };
+  /** Present for commercial owners: treasury + per-employee snapshot. */
+  company?: CompanyDashboard;
+  /** Present for any company member (owner or employee): their access flags. */
+  membership?: MembershipInfo;
 };
 
 function asLocalized(value: unknown, fallback: Localized): Localized {

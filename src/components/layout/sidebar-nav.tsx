@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { Building2 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/routing";
 import { navGroups } from "@/config/navigation";
 import { useFinance } from "@/components/finance/finance-provider";
@@ -10,11 +11,29 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const tNav = useTranslations("nav");
   const tGroups = useTranslations("navGroups");
-  const { notifications } = useFinance();
+  const tCompany = useTranslations("company");
+  const { notifications, membership } = useFinance();
   const unreadCount = notifications.filter((n) => !n.read).length;
+  const isOwner = membership?.role === "OWNER";
 
   return (
     <nav className="flex flex-col gap-6">
+      {isOwner && (
+        <div>
+          <ul className="space-y-0.5">
+            <li>
+              <Link
+                href="/company"
+                onClick={onNavigate}
+                className="group relative flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm font-medium text-primary-strong transition-colors hover:bg-primary/10"
+              >
+                <Building2 className="h-[1.15rem] w-[1.15rem] shrink-0" strokeWidth={2.2} />
+                <span className="flex-1">{tCompany("console")}</span>
+              </Link>
+            </li>
+          </ul>
+        </div>
+      )}
       {navGroups.map((group) => (
         <div key={group.key}>
           <p className="mb-2 px-3 text-[0.7rem] font-semibold uppercase tracking-wider text-subtle-foreground">
