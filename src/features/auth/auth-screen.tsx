@@ -14,7 +14,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { Link, useRouter } from "@/i18n/routing";
+import { Link } from "@/i18n/routing";
 import { OtpInput } from "@/features/auth/otp-input";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
@@ -110,8 +110,29 @@ function SocialButton({
 export function AuthScreen({ mode }: { mode: "login" | "register" }) {
   const t = useTranslations("auth");
   const locale = useLocale();
-  const router = useRouter();
   const isRegister = mode === "register";
+
+  /** Locale-prefixed destination after auth, honoring a safe `next` param.
+   * Reads from the live URL (only called in client event handlers), so it
+   * needs no useSearchParams / Suspense boundary. */
+  function destination() {
+    const raw =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("next") ?? ""
+        : "";
+    const safe = raw.startsWith("/") && !raw.startsWith("//") ? raw : "/dashboard";
+    return `/${locale}${safe}`;
+  }
+
+  /**
+   * Full-page navigation after a successful sign-in. A hard load (rather than a
+   * client-side push) guarantees the just-set session cookie is sent on the
+   * next request, so middleware/server components see the session and don't
+   * bounce back to /login — a race that surfaces on production HTTPS.
+   */
+  function goAfterAuth() {
+    window.location.assign(destination());
+  }
 
   const [step, setStep] = useState<Step>("form");
   const [loginMethod, setLoginMethod] = useState<LoginMethod>("password");
@@ -138,7 +159,7 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
     setLoading(true);
     setApiError("");
     try {
-      await signIn(provider, { callbackUrl: `/${locale}/dashboard` });
+      await signIn(provider, { callbackUrl: destination() });
     } catch {
       setApiError(t("oauthError"));
       setLoading(false);
@@ -212,9 +233,9 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
           redirect: false,
         });
         if (result?.error) throw new Error(t("invalidCredentials"));
-        void fetch("/api/activity/login", { method: "POST" }).catch(() => {});
+        void fetch("/api/activity/login", { method: "POST", keepalive: true }).catch(() => {});
         markWelcomeToast();
-        router.push("/dashboard");
+        goAfterAuth();
       } else {
         const res = await fetch("/api/auth/login/otp/send", {
           method: "POST",
@@ -252,9 +273,9 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
         redirect: false,
       });
       if (result?.error) throw new Error(t("invalidOtp"));
-      void fetch("/api/activity/login", { method: "POST" }).catch(() => {});
+      void fetch("/api/activity/login", { method: "POST", keepalive: true }).catch(() => {});
       markWelcomeToast(t(otpPurpose === "login" ? "welcomeBack" : "verificationSuccess"));
-      router.push("/dashboard");
+      goAfterAuth();
     } catch (err) {
       setApiError(err instanceof Error ? err.message : t("invalidOtp"));
     } finally {
