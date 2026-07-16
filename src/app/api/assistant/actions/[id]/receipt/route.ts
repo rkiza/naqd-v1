@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { spawn } from "node:child_process";
+import { existsSync, readdirSync } from "node:fs";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { receiptHtml } from "@/server/assistant/receipt-html";
@@ -16,8 +17,33 @@ const CANDIDATES: Array<[string, string[]]> = [
   ["python3", ["-m", "weasyprint", "-", "-"]],
 ];
 
+/**
+ * Extra bin dirs where WeasyPrint/Python commonly live. A dev server launched
+ * from a GUI (VS Code, Finder) gets a minimal PATH without Homebrew or the
+ * python.org framework bins — so resolve them explicitly.
+ */
+function extraBinDirs(): string[] {
+  const dirs = ["/opt/homebrew/bin", "/usr/local/bin"];
+  const fw = "/Library/Frameworks/Python.framework/Versions";
+  try {
+    for (const v of readdirSync(fw)) {
+      const bin = `${fw}/${v}/bin`;
+      if (existsSync(bin)) dirs.push(bin);
+    }
+  } catch {
+    /* python.org framework not installed */
+  }
+  return dirs;
+}
+
 /** Render HTML → PDF via WeasyPrint (stdin → stdout). */
 function renderPdf(html: string): Promise<Buffer> {
+  const env = {
+    ...process.env,
+    PATH: [...extraBinDirs(), process.env.PATH ?? ""].join(":"),
+    // Homebrew-installed pango/cairo for non-Homebrew Pythons on macOS.
+    DYLD_FALLBACK_LIBRARY_PATH: `/opt/homebrew/lib:${process.env.DYLD_FALLBACK_LIBRARY_PATH ?? ""}`,
+  };
   const tryCandidate = (i: number): Promise<Buffer> =>
     new Promise((resolve, reject) => {
       if (i >= CANDIDATES.length) {
@@ -25,14 +51,7 @@ function renderPdf(html: string): Promise<Buffer> {
         return;
       }
       const [cmd, cmdArgs] = CANDIDATES[i];
-      const child = spawn(cmd, cmdArgs, {
-        env: {
-          ...process.env,
-          // Homebrew-installed pango/cairo for non-Homebrew Pythons on macOS.
-          DYLD_FALLBACK_LIBRARY_PATH: `/opt/homebrew/lib:${process.env.DYLD_FALLBACK_LIBRARY_PATH ?? ""}`,
-        },
-        stdio: ["pipe", "pipe", "pipe"],
-      });
+      const child = spawn(cmd, cmdArgs, { env, stdio: ["pipe", "pipe", "pipe"] });
       const out: Buffer[] = [];
       const err: Buffer[] = [];
       const timer = setTimeout(() => child.kill("SIGKILL"), 30_000);

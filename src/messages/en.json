@@ -550,7 +550,8 @@
     "receiptRef": "Reference",
     "pickRecipientTitle": "Choose a recipient",
     "amountTitle": "How much would you like to send?",
-    "downloadPdf": "Download PDF"
+    "downloadPdf": "Download PDF",
+    "pdfError": "Couldn't generate the PDF receipt. Please try again."
   },
   "notifications": {
     "title": "Notifications",

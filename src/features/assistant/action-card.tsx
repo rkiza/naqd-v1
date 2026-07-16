@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { Download, Loader2, Send, TrendingDown, TrendingUp } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
@@ -416,7 +417,30 @@ function ReceiptView({ action, locale }: { action: ActionView; locale: Locale })
   const p = action.payload;
   const isSend = p.kind === "send_money";
   const isBuy = p.kind === "buy_stock";
-  const pdfUrl = `/api/assistant/actions/${action.id}/receipt?locale=${locale}`;
+  const [downloading, setDownloading] = useState(false);
+
+  /** Fetch the WeasyPrint-rendered PDF; a renderer failure becomes a toast,
+   * never a downloaded JSON error file. */
+  async function downloadPdf() {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      const res = await fetch(`/api/assistant/actions/${action.id}/receipt?locale=${locale}`);
+      const type = res.headers.get("content-type") ?? "";
+      if (!res.ok || !type.includes("application/pdf")) throw new Error("not a pdf");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `naqd-receipt-${action.id.slice(-8).toUpperCase()}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error(t("pdfError"));
+    } finally {
+      setDownloading(false);
+    }
+  }
   const executed = action.executedAt ? new Date(action.executedAt) : new Date();
   const reference = action.id.slice(-8).toUpperCase();
   const amount = isSend ? p.amount : p.totalSar;
@@ -522,14 +546,19 @@ function ReceiptView({ action, locale }: { action: ActionView; locale: Locale })
         transition={{ delay: 0.5, duration: 0.3 }}
         className="mt-2 flex justify-end"
       >
-        <a
-          href={pdfUrl}
-          download
-          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        <button
+          type="button"
+          onClick={downloadPdf}
+          disabled={downloading}
+          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-60"
         >
-          <Download className="h-3.5 w-3.5" />
+          {downloading ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Download className="h-3.5 w-3.5" />
+          )}
           {t("downloadPdf")}
-        </a>
+        </button>
       </motion.div>
     </div>
   );

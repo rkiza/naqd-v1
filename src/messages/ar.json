@@ -550,7 +550,8 @@
     "receiptRef": "المرجع",
     "pickRecipientTitle": "اختر المستفيد",
     "amountTitle": "كم تريد أن ترسل؟",
-    "downloadPdf": "تحميل PDF"
+    "downloadPdf": "تحميل PDF",
+    "pdfError": "تعذّر إنشاء إيصال PDF. حاول مرة أخرى."
   },
   "notifications": {
     "title": "الإشعارات",
