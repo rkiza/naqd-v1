@@ -3,22 +3,54 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { ArrowUp, Plus, Sparkles, Square, Copy, Check, PanelLeft, X } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 import { LogoMark } from "@/components/brand/logo";
 import { Avatar } from "@/components/ui/avatar";
 import { useFinance } from "@/components/finance/finance-provider";
+import { useMarket } from "@/features/markets/store";
 import { pick } from "@/lib/localized";
 import { cn } from "@/lib/utils";
 import { MarkdownMessage } from "./markdown-message";
 import { ConversationSidebar, type ConversationSummary } from "./conversation-sidebar";
+import { ActionCard, type ActionView } from "./action-card";
+import { PortfolioCard, type PortfolioCardData } from "./portfolio-card";
 
-type Msg = { role: "user" | "assistant"; content: string };
+type Msg = {
+  role: "user" | "assistant";
+  content: string;
+  kind?: "text" | "action" | "portfolio";
+  action?: ActionView;
+  card?: PortfolioCardData;
+};
+
+/** One NDJSON event from /api/chat. */
+type ChatEvent =
+  | { t: "text"; d: string }
+  | { t: "action"; action: ActionView }
+  | { t: "card"; kind: "portfolio"; data: PortfolioCardData };
+
+/** Compact text stand-in for a card so the model keeps conversational context. */
+function serializeForModel(m: Msg): string {
+  if (m.kind === "action" && m.action) {
+    const p = m.action.payload;
+    const what =
+      p.kind === "send_money"
+        ? `SAR ${p.amount} to ${p.beneficiaryName.en}`
+        : `${p.units} × ${p.symbol} (SAR ${p.totalSar})`;
+    return `[${m.action.type} card: ${what} — status: ${m.action.status}]`;
+  }
+  if (m.kind === "portfolio") return "[holdings card shown]";
+  return m.content;
+}
 
 export function AssistantScreen() {
   const locale = useLocale() as Locale;
   const t = useTranslations("assistant");
   const { user } = useFinance();
+  const router = useRouter();
+  const { refresh: refreshMarket } = useMarket();
 
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
@@ -27,6 +59,7 @@ export function AssistantScreen() {
   const [streaming, setStreaming] = useState(false);
   const [copied, setCopied] = useState<number | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [actionBusy, setActionBusy] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -87,8 +120,29 @@ export function AssistantScreen() {
     try {
       const res = await fetch(`/api/assistant/conversations/${id}`);
       if (!res.ok) return;
-      const data = (await res.json()) as { messages: Msg[] };
-      setMessages(data.messages ?? []);
+      const data = (await res.json()) as {
+        messages: Array<{
+          role: "user" | "assistant";
+          content: string;
+          kind?: string;
+          action?: ActionView | null;
+          card?: PortfolioCardData | null;
+        }>;
+      };
+      const mapped: Msg[] = (data.messages ?? []).flatMap((m) => {
+        if (m.kind === "action") {
+          return m.action
+            ? [{ role: m.role, content: m.content, kind: "action" as const, action: m.action }]
+            : [];
+        }
+        if (m.kind === "portfolio") {
+          return m.card
+            ? [{ role: m.role, content: m.content, kind: "portfolio" as const, card: m.card }]
+            : [];
+        }
+        return [{ role: m.role, content: m.content }];
+      });
+      setMessages(mapped);
     } catch {
       /* ignore */
     }
@@ -107,6 +161,33 @@ export function AssistantScreen() {
     }
   }
 
+  /** Apply one streamed NDJSON event to the message list. */
+  function applyEvent(ev: ChatEvent) {
+    setMessages((prev) => {
+      const copy = [...prev];
+      const last = copy[copy.length - 1];
+      const lastIsText = last?.role === "assistant" && (last.kind ?? "text") === "text";
+      if (ev.t === "text") {
+        if (lastIsText) {
+          copy[copy.length - 1] = { ...last, content: last.content + ev.d };
+        } else {
+          copy.push({ role: "assistant", content: ev.d });
+        }
+        return copy;
+      }
+      // Card events: drop a still-empty text placeholder, append the card and
+      // a fresh placeholder so follow-up text gets its own bubble.
+      if (lastIsText && !last.content) copy.pop();
+      if (ev.t === "action") {
+        copy.push({ role: "assistant", content: "", kind: "action", action: ev.action });
+      } else if (ev.t === "card" && ev.kind === "portfolio") {
+        copy.push({ role: "assistant", content: "", kind: "portfolio", card: ev.data });
+      }
+      copy.push({ role: "assistant", content: "" });
+      return copy;
+    });
+  }
+
   async function send(text: string) {
     const trimmed = text.trim();
     if (!trimmed || streaming) return;
@@ -120,11 +201,28 @@ export function AssistantScreen() {
     const controller = new AbortController();
     abortRef.current = controller;
 
+    // Cards are serialized to short text summaries for the model's context.
+    const outgoing = next
+      .map((m) => ({ role: m.role, content: serializeForModel(m) }))
+      .filter((m) => m.content.trim());
+
+    let receivedAnything = false;
+    const handleLine = (line: string) => {
+      if (!line.trim()) return;
+      try {
+        const ev = JSON.parse(line) as ChatEvent;
+        receivedAnything = true;
+        applyEvent(ev);
+      } catch {
+        /* tolerate malformed lines */
+      }
+    };
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next, locale, conversationId: currentId }),
+        body: JSON.stringify({ messages: outgoing, locale, conversationId: currentId }),
         signal: controller.signal,
       });
       const cid = res.headers.get("X-Conversation-Id");
@@ -133,33 +231,79 @@ export function AssistantScreen() {
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let acc = "";
+      let buf = "";
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        acc += decoder.decode(value, { stream: true });
-        setMessages((prev) => {
-          const copy = [...prev];
-          copy[copy.length - 1] = { role: "assistant", content: acc };
-          return copy;
-        });
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) handleLine(line);
       }
+      handleLine(buf);
+      if (!receivedAnything) throw new Error("empty stream");
     } catch (err) {
-      if ((err as Error)?.name !== "AbortError") {
+      if ((err as Error)?.name !== "AbortError" && !receivedAnything) {
         setMessages((prev) => {
           const copy = [...prev];
           const last = copy[copy.length - 1];
-          if (last && last.role === "assistant" && !last.content) {
+          if (last?.role === "assistant" && (last.kind ?? "text") === "text" && !last.content) {
             copy[copy.length - 1] = { role: "assistant", content: t("errorNote") };
           }
           return copy;
         });
       }
     } finally {
+      // Remove a trailing empty text placeholder (e.g. stream ended on a card).
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "assistant" && (last.kind ?? "text") === "text" && !last.content) {
+          return prev.slice(0, -1);
+        }
+        return prev;
+      });
       setStreaming(false);
       abortRef.current = null;
       loadConversations();
       inputRef.current?.focus();
+    }
+  }
+
+  /** Confirm or cancel a proposed action card. */
+  async function decide(action: ActionView, decision: "confirm" | "decline") {
+    if (actionBusy) return;
+    setActionBusy(action.id);
+    try {
+      const res = await fetch(`/api/assistant/actions/${action.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decision }),
+      });
+      const data = (await res.json().catch(() => null)) as {
+        status?: ActionView["status"];
+        result?: ActionView["result"];
+      } | null;
+      // 409 (already resolved) also carries the definitive status — apply it.
+      if (!data?.status) return;
+      const status = data.status;
+      const result = data.result ?? null;
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.kind === "action" && m.action?.id === action.id
+            ? { ...m, action: { ...m.action, status, result } }
+            : m,
+        ),
+      );
+      if (status === "executed") {
+        // Sync the rest of the app with the server-side execution: the global
+        // markets store (trades) and the server-rendered finance snapshot.
+        if (action.type !== "send_money") void refreshMarket();
+        router.refresh();
+      }
+    } catch {
+      /* leave the card pending — the user can retry */
+    } finally {
+      setActionBusy(null);
     }
   }
 
@@ -268,7 +412,29 @@ export function AssistantScreen() {
           </div>
 
           {messages.map((m, i) => {
-            const isStreamingMsg = streaming && i === lastIndex && m.role === "assistant";
+            const isStreamingMsg =
+              streaming && i === lastIndex && m.role === "assistant" && (m.kind ?? "text") === "text";
+
+            // AI-proposed transaction / holdings cards.
+            if (m.kind === "action" || m.kind === "portfolio") {
+              return (
+                <div key={i} className="flex gap-3">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-brand-soft text-primary-strong">
+                    <LogoMark className="h-4 w-4" />
+                  </span>
+                  {m.kind === "action" && m.action ? (
+                    <ActionCard
+                      action={m.action}
+                      busy={actionBusy === m.action.id}
+                      onDecide={(decision) => decide(m.action!, decision)}
+                    />
+                  ) : m.card ? (
+                    <PortfolioCard data={m.card} />
+                  ) : null}
+                </div>
+              );
+            }
+
             if (m.role === "user") {
               return (
                 <motion.div

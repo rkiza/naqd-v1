@@ -3,6 +3,14 @@ import { loc } from "@/lib/localized";
 
 export type MarketId = "sa" | "us";
 
+/** SAR per 1 USD — used to settle US trades from the single SAR wallet. */
+export const SAR_PER_USD = 3.75;
+
+/** Cost/proceeds of a trade in SAR (US prices are quoted in USD). */
+export function tradeCostSar(market: MarketId, units: number, price: number): number {
+  return units * price * (market === "us" ? SAR_PER_USD : 1);
+}
+
 export type Stock = {
   symbol: string;
   name: Localized;

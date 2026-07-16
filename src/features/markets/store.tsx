@@ -2,15 +2,16 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useReducer,
+  useRef,
   type ReactNode,
 } from "react";
-import { stockBySymbol } from "@/data/markets";
+import { stockBySymbol, SAR_PER_USD } from "@/data/markets";
 
-/** SAR per 1 USD — used to settle US trades from the single SAR wallet. */
-export const SAR_PER_USD = 3.75;
+export { SAR_PER_USD };
 
 export type Position = { units: number; avgCost: number };
 export type Order = {
@@ -126,6 +127,8 @@ type Ctx = State & {
   sell: (symbol: string, units: number, price: number) => void;
   toggleWatch: (symbol: string) => void;
   reset: () => void;
+  /** Re-pull the server-side portfolio (e.g. after an AI-executed trade). */
+  refresh: () => Promise<void>;
 };
 
 const MarketContext = createContext<Ctx | null>(null);
@@ -141,39 +144,45 @@ async function persistPortfolio(state: State) {
 
 export function MarketProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, DEFAULT);
+  // Skip persisting states that came FROM the server: hydrating must never PUT
+  // back a snapshot (it would clobber server-side changes, e.g. AI trades).
+  const skipPersist = useRef(true);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/markets/portfolio");
-        if (!res.ok) {
-          if (!cancelled) dispatch({ type: "HYDRATE", payload: {} });
-          return;
-        }
-        const data = await res.json();
-        if (!cancelled) {
-          dispatch({
-            type: "HYDRATE",
-            payload: {
-              cash: data.cash,
-              positions: data.positions ?? {},
-              watchlist: data.watchlist ?? [],
-              orders: data.orders ?? [],
-            },
-          });
-        }
-      } catch {
-        if (!cancelled) dispatch({ type: "HYDRATE", payload: {} });
+  const refresh = useCallback(async () => {
+    try {
+      const res = await fetch("/api/markets/portfolio");
+      if (!res.ok) {
+        skipPersist.current = true;
+        dispatch({ type: "HYDRATE", payload: {} });
+        return;
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
+      const data = await res.json();
+      skipPersist.current = true;
+      dispatch({
+        type: "HYDRATE",
+        payload: {
+          cash: data.cash,
+          positions: data.positions ?? {},
+          watchlist: data.watchlist ?? [],
+          orders: data.orders ?? [],
+        },
+      });
+    } catch {
+      skipPersist.current = true;
+      dispatch({ type: "HYDRATE", payload: {} });
+    }
   }, []);
 
   useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  useEffect(() => {
     if (!state.hydrated) return;
+    if (skipPersist.current) {
+      skipPersist.current = false;
+      return;
+    }
     void persistPortfolio(state);
   }, [state]);
 
@@ -183,6 +192,7 @@ export function MarketProvider({ children }: { children: ReactNode }) {
     sell: (symbol, units, price) => dispatch({ type: "SELL", symbol, units, price }),
     toggleWatch: (symbol) => dispatch({ type: "TOGGLE_WATCH", symbol }),
     reset: () => dispatch({ type: "RESET" }),
+    refresh,
   };
 
   return <MarketContext.Provider value={value}>{children}</MarketContext.Provider>;
