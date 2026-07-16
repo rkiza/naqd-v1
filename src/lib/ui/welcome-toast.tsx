@@ -1,21 +1,32 @@
 "use client";
 
-import { PartyPopper } from "lucide-react";
 import { toast } from "sonner";
+import { LogoMark } from "@/components/brand/logo";
 
-export function showWelcomeToast(message: string) {
-  toast.success(message, {
-    icon: (
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-        <PartyPopper className="h-5 w-5" strokeWidth={2.25} aria-hidden />
-      </span>
+/**
+ * Post sign-in greeting: a calm glass card in the app's own design language
+ * (brand tile + single line), instead of a stock success toast. Custom-rendered
+ * so light/dark theming comes straight from the CSS tokens. Tap to dismiss.
+ */
+export function showWelcomeToast(title: string, subtitle?: string) {
+  toast.custom(
+    (id) => (
+      <button
+        type="button"
+        onClick={() => toast.dismiss(id)}
+        className="pointer-events-auto flex w-full items-center gap-3 rounded-2xl border border-border bg-surface/90 px-4 py-3 text-start shadow-lg shadow-black/5 backdrop-blur-xl"
+      >
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-soft text-primary-strong">
+          <LogoMark className="h-4.5 w-4.5" aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-foreground">{title}</span>
+          {subtitle && (
+            <span className="mt-0.5 block truncate text-xs text-muted-foreground">{subtitle}</span>
+          )}
+        </span>
+      </button>
     ),
-    duration: 4500,
-    classNames: {
-      toast:
-        "!min-w-[280px] !rounded-2xl !border-2 !border-primary/50 !bg-surface !text-foreground !shadow-xl !ring-2 !ring-primary/20 !px-4 !py-3.5",
-      title: "!text-sm !font-semibold !text-foreground",
-      icon: "!self-center",
-    },
-  });
+    { duration: 4000 },
+  );
 }

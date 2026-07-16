@@ -286,7 +286,9 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
       });
       if (result?.error) throw new Error(t("invalidOtp"));
       void fetch("/api/activity/login", { method: "POST", keepalive: true }).catch(() => {});
-      markWelcomeToast(t(otpPurpose === "login" ? "welcomeBack" : "verificationSuccess"));
+      // Plain logins use the personalized default greeting; only a fresh
+      // account verification carries an explicit message.
+      markWelcomeToast(otpPurpose === "login" ? undefined : t("verificationSuccess"));
       goAfterAuth();
     } catch (err) {
       setApiError(err instanceof Error ? err.message : t("invalidOtp"));

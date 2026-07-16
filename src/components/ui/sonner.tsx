@@ -17,17 +17,18 @@ export function Toaster(props: ToasterProps) {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       position="top-center"
-      offset={80}
-      mobileOffset={16}
-      gap={12}
+      offset={76}
+      mobileOffset={{ top: "calc(env(safe-area-inset-top) + 12px)", left: 16, right: 16 }}
+      gap={10}
+      duration={4000}
       toastOptions={{
         classNames: {
           toast:
-            "group toast !rounded-2xl !border !border-border-strong !bg-surface !text-foreground !shadow-xl !px-4 !py-3.5",
+            "group toast !rounded-2xl !border !border-border !bg-surface/90 !text-foreground !shadow-lg !shadow-black/5 !backdrop-blur-xl !px-4 !py-3",
           title: "!text-sm !font-semibold",
-          description: "!text-sm !text-muted-foreground",
-          success: "!border-primary/30 !bg-surface !text-foreground",
-          error: "!border-negative/30 !bg-surface",
+          description: "!text-xs !text-muted-foreground",
+          success: "!text-foreground [&_[data-icon]]:!text-positive",
+          error: "!text-foreground [&_[data-icon]]:!text-negative",
         },
       }}
       {...props}

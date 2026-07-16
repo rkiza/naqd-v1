@@ -213,6 +213,7 @@
     "demoEmail": "fahad@naqd.sa",
     "demoPassword": "demo1234",
     "welcomeBack": "Welcome back",
+    "welcomeBackName": "Welcome back, {name}",
     "verificationSuccess": "Email verified successfully"
   },
   "topbar": {
