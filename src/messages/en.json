@@ -543,7 +543,11 @@
     "portfolioTitle": "Your positions",
     "noPositions": "No stock positions yet — ask me to buy your first one.",
     "positionsValue": "Positions value",
-    "tradingCash": "Trading cash"
+    "tradingCash": "Trading cash",
+    "receiptSend": "Transfer receipt",
+    "receiptOrder": "Order receipt",
+    "receiptDate": "Date",
+    "receiptRef": "Reference"
   },
   "notifications": {
     "title": "Notifications",

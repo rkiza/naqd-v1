@@ -543,7 +543,11 @@
     "portfolioTitle": "مراكزك الاستثمارية",
     "noPositions": "لا تملك أسهمًا بعد — اطلب مني شراء أول سهم لك.",
     "positionsValue": "قيمة المراكز",
-    "tradingCash": "نقد التداول"
+    "tradingCash": "نقد التداول",
+    "receiptSend": "إيصال التحويل",
+    "receiptOrder": "إيصال الأمر",
+    "receiptDate": "التاريخ",
+    "receiptRef": "المرجع"
   },
   "notifications": {
     "title": "الإشعارات",

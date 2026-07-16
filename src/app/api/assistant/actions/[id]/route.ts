@@ -47,7 +47,12 @@ export async function POST(req: Request, { params }: Ctx) {
   }
   if (action.status !== "pending") {
     return NextResponse.json(
-      { error: "Already resolved", status: action.status, result: action.result },
+      {
+        error: "Already resolved",
+        status: action.status,
+        result: action.result,
+        executedAt: action.executedAt,
+      },
       { status: 409 },
     );
   }
@@ -109,5 +114,10 @@ export async function POST(req: Request, { params }: Ctx) {
     req,
   });
 
-  return NextResponse.json({ id: updated.id, status: updated.status, result: updated.result });
+  return NextResponse.json({
+    id: updated.id,
+    status: updated.status,
+    result: updated.result,
+    executedAt: updated.executedAt,
+  });
 }

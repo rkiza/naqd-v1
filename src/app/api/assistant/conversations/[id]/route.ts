@@ -40,7 +40,7 @@ export async function GET(_req: Request, { params }: Ctx) {
   const actions = actionIds.length
     ? await prisma.assistantAction.findMany({
         where: { id: { in: actionIds }, userId: session.user.id },
-        select: { id: true, type: true, status: true, payload: true, result: true },
+        select: { id: true, type: true, status: true, payload: true, result: true, executedAt: true },
       })
     : [];
   const actionById = new Map(actions.map((a) => [a.id, a]));

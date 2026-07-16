@@ -282,15 +282,17 @@ export function AssistantScreen() {
       const data = (await res.json().catch(() => null)) as {
         status?: ActionView["status"];
         result?: ActionView["result"];
+        executedAt?: string | null;
       } | null;
       // 409 (already resolved) also carries the definitive status — apply it.
       if (!data?.status) return;
       const status = data.status;
       const result = data.result ?? null;
+      const executedAt = data.executedAt ?? null;
       setMessages((prev) =>
         prev.map((m) =>
           m.kind === "action" && m.action?.id === action.id
-            ? { ...m, action: { ...m.action, status, result } }
+            ? { ...m, action: { ...m.action, status, result, executedAt } }
             : m,
         ),
       );
