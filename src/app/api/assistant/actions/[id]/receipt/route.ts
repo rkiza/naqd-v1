@@ -123,7 +123,12 @@ export async function GET(req: Request, { params }: Ctx) {
   } catch (err) {
     console.error("[receipt] WeasyPrint render failed:", err);
     return NextResponse.json(
-      { error: "PDF renderer unavailable — install WeasyPrint (pip3 install weasyprint)" },
+      {
+        error: "PDF renderer unavailable — install WeasyPrint (pip3 install weasyprint)",
+        // Local demo: surface the underlying spawn/stderr cause to make
+        // environment issues (PATH, missing libs) debuggable from the client.
+        detail: String(err instanceof Error ? err.message : err).slice(0, 400),
+      },
       // no-store: a cached error must never shadow a later successful render
       { status: 501, headers: { "Cache-Control": "no-store" } },
     );
