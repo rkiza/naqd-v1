@@ -1,17 +1,21 @@
 "use client";
 
-import { motion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
 import { Loader2, Send, TrendingDown, TrendingUp } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { Money } from "@/components/ui/money";
 import { AnimatedCheck } from "@/components/ui/animated-check";
+import { Confetti } from "@/components/ui/confetti";
 import { StockLogo } from "@/components/finance/stock-logo";
 import { stockBySymbol } from "@/data/markets";
 import { pick, type Localized } from "@/lib/localized";
 import { formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 /* Client-side mirrors of the server action shapes (the server module imports
  * prisma and must not be bundled into the client). */
@@ -91,20 +95,53 @@ export function ActionCard({
   const isBuy = p.kind === "buy_stock";
   const stock = !isSend ? stockBySymbol(p.symbol) : undefined;
 
+  // Celebrate only a live pending → executed flip — never on history reloads,
+  // where the card mounts already executed.
+  const prevStatus = useRef(action.status);
+  const [celebrate, setCelebrate] = useState(false);
+  useEffect(() => {
+    if (prevStatus.current === "pending" && action.status === "executed") {
+      setCelebrate(true);
+    }
+    prevStatus.current = action.status;
+  }, [action.status]);
+
   const title = isSend
     ? t("actionSendTitle")
     : isBuy
       ? t("actionBuyTitle")
       : t("actionSellTitle");
   const Icon = isSend ? Send : isBuy ? TrendingUp : TrendingDown;
+  const statusLabel =
+    action.status === "pending"
+      ? t("awaitingConfirm")
+      : action.status === "executed"
+        ? t("statusExecuted")
+        : action.status === "declined"
+          ? t("statusDeclined")
+          : t("statusFailed");
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-      className="w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-surface shadow-xs"
+      transition={{ duration: 0.24, ease: EASE }}
+      className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-surface shadow-xs"
     >
+      {/* One-shot page-wide burst + a soft green ring that fades off the card. */}
+      {celebrate && (
+        <>
+          <Confetti />
+          <motion.span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-10 rounded-2xl ring-2 ring-positive/60 ring-inset"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 0 }}
+            transition={{ duration: 1.4, ease: "easeOut" }}
+          />
+        </>
+      )}
+
       {/* Header */}
       <div className="flex items-center gap-3 border-b border-border px-4 py-3">
         <span
@@ -121,12 +158,21 @@ export function ActionCard({
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-foreground">{title}</p>
-          <p className="truncate text-xs text-muted-foreground">
-            {action.status === "pending" ? t("awaitingConfirm") : null}
-            {action.status === "executed" ? t("statusExecuted") : null}
-            {action.status === "declined" ? t("statusDeclined") : null}
-            {action.status === "failed" ? t("statusFailed") : null}
-          </p>
+          <AnimatePresence initial={false} mode="wait">
+            <motion.p
+              key={action.status}
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              transition={{ duration: 0.16, ease: "easeOut" }}
+              className={cn(
+                "truncate text-xs",
+                action.status === "executed" ? "font-medium text-positive" : "text-muted-foreground",
+              )}
+            >
+              {statusLabel}
+            </motion.p>
+          </AnimatePresence>
         </div>
         {!isSend && stock && (
           <StockLogo domain={stock.domain} symbol={stock.symbol} color={stock.color} size={36} />
@@ -198,50 +244,78 @@ export function ActionCard({
         )}
       </div>
 
-      {/* Footer */}
-      {action.status === "pending" && (
-        <div className="flex gap-2 border-t border-border px-4 py-3">
-          <Button
-            size="sm"
-            className="flex-1"
-            disabled={busy}
-            onClick={() => onDecide("confirm")}
+      {/* Footer — animated swap: buttons → success / failure strip. */}
+      <AnimatePresence initial={false} mode="wait">
+        {action.status === "pending" ? (
+          <motion.div
+            key="pending"
+            exit={{ opacity: 0, y: 6 }}
+            transition={{ duration: 0.16, ease: "easeIn" }}
+            className="flex gap-2 border-t border-border px-4 py-3"
           >
-            {busy ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {t("confirming")}
-              </>
-            ) : (
-              t("confirm")
+            <Button
+              size="sm"
+              className="flex-1"
+              disabled={busy}
+              onClick={() => onDecide("confirm")}
+            >
+              {busy ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {t("confirming")}
+                </>
+              ) : (
+                t("confirm")
+              )}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1"
+              disabled={busy}
+              onClick={() => onDecide("decline")}
+            >
+              {t("cancel")}
+            </Button>
+          </motion.div>
+        ) : action.status === "executed" ? (
+          <motion.div
+            key="executed"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: EASE }}
+            className="flex items-center gap-2 border-t border-border bg-positive-soft/40 px-4 py-2.5 text-sm font-medium text-positive"
+          >
+            <motion.span
+              className="h-5 w-5 shrink-0"
+              initial={{ scale: 0.4, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 380, damping: 20, delay: 0.05 }}
+            >
+              <AnimatedCheck />
+            </motion.span>
+            <motion.span
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.28, delay: 0.18, ease: EASE }}
+            >
+              {t("executedNote")}
+            </motion.span>
+          </motion.div>
+        ) : action.status === "failed" ? (
+          <motion.div
+            key="failed"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.26, ease: EASE }}
+            className="border-t border-border bg-negative-soft/40 px-4 py-2.5 text-sm font-medium text-negative"
+          >
+            {t(
+              (action.result?.reason && reasonKeys[action.result.reason]) || "reasonGeneric",
             )}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="flex-1"
-            disabled={busy}
-            onClick={() => onDecide("decline")}
-          >
-            {t("cancel")}
-          </Button>
-        </div>
-      )}
-      {action.status === "executed" && (
-        <div className="flex items-center gap-2 border-t border-border bg-positive-soft/40 px-4 py-2.5 text-sm font-medium text-positive">
-          <span className="h-5 w-5">
-            <AnimatedCheck />
-          </span>
-          {t("executedNote")}
-        </div>
-      )}
-      {action.status === "failed" && (
-        <div className="border-t border-border bg-negative-soft/40 px-4 py-2.5 text-sm font-medium text-negative">
-          {t(
-            (action.result?.reason && reasonKeys[action.result.reason]) || "reasonGeneric",
-          )}
-        </div>
-      )}
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </motion.div>
   );
 }
