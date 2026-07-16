@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Money } from "@/components/ui/money";
 import { CountUpMoney } from "@/components/ui/count-up-money";
 import { AnimatedCheck } from "@/components/ui/animated-check";
-import { Confetti } from "@/components/ui/confetti";
 import { LogoMark } from "@/components/brand/logo";
 import { StockLogo } from "@/components/finance/stock-logo";
 import { stockBySymbol } from "@/data/markets";
@@ -140,18 +139,15 @@ export function ActionCard({
       transition={{ duration: 0.24, ease: EASE }}
       className="relative w-full max-w-sm"
     >
-      {/* One-shot page-wide burst + a soft green ring that fades off the card. */}
+      {/* A soft green ring that fades off the card on a live confirmation. */}
       {celebrate && (
-        <>
-          <Confetti />
-          <motion.span
-            aria-hidden
-            className="pointer-events-none absolute inset-0 z-10 rounded-2xl ring-2 ring-positive/60 ring-inset"
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 0 }}
-            transition={{ duration: 1.4, ease: "easeOut" }}
-          />
-        </>
+        <motion.span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-10 rounded-2xl ring-2 ring-positive/60 ring-inset"
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 0 }}
+          transition={{ duration: 1.4, ease: "easeOut" }}
+        />
       )}
 
       <AnimatePresence initial={false} mode="wait">
