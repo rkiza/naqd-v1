@@ -29,12 +29,6 @@ export default async function LandingPage({
   const tc = await getTranslations("common");
   const lc = (await getLocale()) as Locale;
 
-  const stats = [
-    { value: "48,000+", label: t("statsUsers") },
-    { value: <Money value={214_000_000} locale={lc} compact />, label: t("statsInvested") },
-    { value: "4.9 ★", label: t("statsRating") },
-  ];
-
   return (
     <div className="min-h-dvh overflow-x-clip bg-background">
       {/* ── Hero (dark, ColorBends) ─────────────────────────────── */}
@@ -96,15 +90,6 @@ export default async function LandingPage({
                   <Link href="/register">{t("createAccount")}</Link>
                 </Button>
               </div>
-
-              <div className="mt-12 grid max-w-md grid-cols-3 gap-6">
-                {stats.map((s) => (
-                  <div key={s.label}>
-                    <p className="text-xl font-semibold tracking-tight tnum sm:text-2xl">{s.value}</p>
-                    <p className="mt-1 text-xs leading-snug text-white/60">{s.label}</p>
-                  </div>
-                ))}
-              </div>
             </div>
 
             {/* Hero visual */}
@@ -126,12 +111,6 @@ export default async function LandingPage({
                   {formatPercent(11.5, lc, { signed: true })}
                 </div>
                 <Sparkline data={[96, 99, 98, 103, 109, 112, 118, 122, 127]} width={150} height={28} color="#52d400" />
-              </div>
-              <div className="absolute -top-5 end-0 flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-3 py-2 shadow-lg backdrop-blur-xl sm:-end-4">
-                <span className="grid h-7 w-7 place-items-center rounded-lg bg-primary text-primary-foreground">
-                  <Sparkles className="h-3.5 w-3.5" />
-                </span>
-                <span className="text-xs font-medium text-white">naqd AI</span>
               </div>
             </div>
           </div>
