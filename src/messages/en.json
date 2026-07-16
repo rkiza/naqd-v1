@@ -548,7 +548,8 @@
     "receiptOrder": "Order receipt",
     "receiptDate": "Date",
     "receiptRef": "Reference",
-    "pickRecipientTitle": "Choose a recipient"
+    "pickRecipientTitle": "Choose a recipient",
+    "amountTitle": "How much would you like to send?"
   },
   "notifications": {
     "title": "Notifications",

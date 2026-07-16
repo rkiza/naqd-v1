@@ -51,7 +51,7 @@ export async function GET(_req: Request, { params }: Ctx) {
       const action = actionId ? actionById.get(actionId) : undefined;
       return { role: m.role, content: m.content, kind: m.kind, action: action ?? null };
     }
-    if (m.kind === "portfolio" || m.kind === "beneficiaries") {
+    if (m.kind === "portfolio" || m.kind === "beneficiaries" || m.kind === "amount") {
       return { role: m.role, content: m.content, kind: m.kind, card: m.payload };
     }
     return { role: m.role, content: m.content, kind: "text" };

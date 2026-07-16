@@ -6,6 +6,7 @@ import { getFinanceContext, type FinanceContext } from "@/server/finance/get-fin
 import { getDashboardOrg } from "@/server/company/get-company-context";
 import { logActivity } from "@/server/admin/audit";
 import {
+  resolveBeneficiary,
   validateSendMoney,
   validateTrade,
   type ActionPayload,
@@ -81,6 +82,24 @@ const TOOLS = [
         properties: {
           amount: { type: "number", description: "Amount in SAR, if the user already gave it" },
         },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "ask_amount",
+      description:
+        "Show the user an amount-entry card (input + quick presets) for a transfer to a known SAVED beneficiary. Use when the recipient is clear but the amount isn't — instead of asking for the amount in plain text.",
+      parameters: {
+        type: "object",
+        properties: {
+          beneficiary: {
+            type: "string",
+            description: "Beneficiary id or exact name from the BENEFICIARIES list",
+          },
+        },
+        required: ["beneficiary"],
       },
     },
   },
@@ -383,7 +402,7 @@ export async function POST(req: Request) {
       // reads "I've set up a transfer…" / "Who to?" first, card underneath.
       type QueuedCard =
         | { kind: "action"; id: string; type: ActionType; payload: ActionPayload }
-        | { kind: "beneficiaries"; data: Prisma.JsonObject };
+        | { kind: "beneficiaries" | "amount"; data: Prisma.JsonObject };
       const queuedCards: QueuedCard[] = [];
 
       /** Create a pending action and queue its card for after the reply text. */
@@ -418,7 +437,7 @@ export async function POST(req: Request) {
                 conversationId: convoId,
                 role: "assistant",
                 content: "",
-                kind: card.kind === "action" ? "action" : "beneficiaries",
+                kind: card.kind,
                 payload: card.kind === "action" ? { actionId: card.id } : card.data,
               },
             });
@@ -428,9 +447,30 @@ export async function POST(req: Request) {
           if (card.kind === "action") {
             emit({ t: "action", action: { id: card.id, type: card.type, status: "pending", payload: card.payload } });
           } else {
-            emit({ t: "card", kind: "beneficiaries", data: card.data });
+            emit({ t: "card", kind: card.kind, data: card.data });
           }
         }
+      };
+
+      /** Queue the amount-entry card for a resolved beneficiary. */
+      const queueAmountCard = (b: {
+        extId: string;
+        name: Prisma.JsonValue;
+        bank: Prisma.JsonValue;
+        iban: string;
+      }) => {
+        sideEffects = true;
+        queuedCards.push({
+          kind: "amount",
+          data: {
+            beneficiary: {
+              extId: b.extId,
+              name: b.name,
+              bank: b.bank,
+              ibanLast4: b.iban.slice(-4),
+            },
+          } as Prisma.JsonObject,
+        });
       };
 
       /** Queue the tappable saved-beneficiaries picker (surfaced after the reply). */
@@ -502,6 +542,15 @@ export async function POST(req: Request) {
             }
             queueBeneficiaryPicker(Number(args.amount));
             return "A tappable list of the user's saved beneficiaries will appear right BELOW your reply. Reply with ONE short line asking them to pick a recipient (mention the amount if known). When they answer with a name, call send_money.";
+          }
+          case "ask_amount": {
+            const beneficiary = await resolveBeneficiary(userId, String(args.beneficiary ?? ""));
+            if (!beneficiary) {
+              return `ERROR: beneficiary_not_found — "${String(args.beneficiary ?? "")}" is not a saved beneficiary. Call ask_recipient to let the user pick one.`;
+            }
+            queueAmountCard(beneficiary);
+            const en = (beneficiary.name as { en?: string } | null)?.en ?? beneficiary.extId;
+            return `An amount-entry card (input + quick presets) for a transfer to ${en} will appear right BELOW your reply. Reply with ONE short line asking how much to send. When they answer, call send_money.`;
           }
           case "send_money": {
             const v = await validateSendMoney(userId, org.membership, {
@@ -579,6 +628,21 @@ export async function POST(req: Request) {
           }
           await emitScripted(scriptedActionText("pickRecipient", locale));
           queueBeneficiaryPicker(intent.amount); // card flushes after the text
+          return;
+        }
+        if (intent?.kind === "send_amount") {
+          const beneficiary = await resolveBeneficiary(userId, intent.beneficiary);
+          if (!beneficiary) {
+            if (finance.beneficiaries.length) {
+              await emitScripted(scriptedActionText("pickRecipient", locale));
+              queueBeneficiaryPicker();
+            } else {
+              await emitScripted(scriptedActionText("beneficiary_not_found", locale));
+            }
+            return;
+          }
+          await emitScripted(scriptedActionText("askAmount", locale));
+          queueAmountCard(beneficiary); // card flushes after the text
           return;
         }
         if (intent?.kind === "trade") {

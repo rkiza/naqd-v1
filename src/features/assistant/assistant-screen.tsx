@@ -17,14 +17,16 @@ import { ConversationSidebar, type ConversationSummary } from "./conversation-si
 import { ActionCard, type ActionView } from "./action-card";
 import { PortfolioCard, type PortfolioCardData } from "./portfolio-card";
 import { BeneficiaryPickerCard, type BeneficiaryPickerData } from "./beneficiary-picker-card";
+import { AmountCard, type AmountCardData } from "./amount-card";
 
 type Msg = {
   role: "user" | "assistant";
   content: string;
-  kind?: "text" | "action" | "portfolio" | "beneficiaries";
+  kind?: "text" | "action" | "portfolio" | "beneficiaries" | "amount";
   action?: ActionView;
   card?: PortfolioCardData;
   picker?: BeneficiaryPickerData;
+  amountCard?: AmountCardData;
 };
 
 /** One NDJSON event from /api/chat. */
@@ -32,7 +34,8 @@ type ChatEvent =
   | { t: "text"; d: string }
   | { t: "action"; action: ActionView }
   | { t: "card"; kind: "portfolio"; data: PortfolioCardData }
-  | { t: "card"; kind: "beneficiaries"; data: BeneficiaryPickerData };
+  | { t: "card"; kind: "beneficiaries"; data: BeneficiaryPickerData }
+  | { t: "card"; kind: "amount"; data: AmountCardData };
 
 /** Compact text stand-in for a card so the model keeps conversational context. */
 function serializeForModel(m: Msg): string {
@@ -47,6 +50,9 @@ function serializeForModel(m: Msg): string {
   if (m.kind === "portfolio") return "[holdings card shown]";
   if (m.kind === "beneficiaries") {
     return `[beneficiary picker shown${m.picker?.amount ? ` for SAR ${m.picker.amount}` : ""}]`;
+  }
+  if (m.kind === "amount") {
+    return `[amount entry card shown for ${m.amountCard?.beneficiary.name.en ?? "beneficiary"}]`;
   }
   return m.content;
 }
@@ -132,7 +138,7 @@ export function AssistantScreen() {
           content: string;
           kind?: string;
           action?: ActionView | null;
-          card?: PortfolioCardData | BeneficiaryPickerData | null;
+          card?: PortfolioCardData | BeneficiaryPickerData | AmountCardData | null;
         }>;
       };
       const mapped: Msg[] = (data.messages ?? []).flatMap((m) => {
@@ -149,6 +155,11 @@ export function AssistantScreen() {
         if (m.kind === "beneficiaries") {
           return m.card
             ? [{ role: m.role, content: m.content, kind: "beneficiaries" as const, picker: m.card as BeneficiaryPickerData }]
+            : [];
+        }
+        if (m.kind === "amount") {
+          return m.card
+            ? [{ role: m.role, content: m.content, kind: "amount" as const, amountCard: m.card as AmountCardData }]
             : [];
         }
         return [{ role: m.role, content: m.content }];
@@ -195,6 +206,8 @@ export function AssistantScreen() {
         copy.push({ role: "assistant", content: "", kind: "portfolio", card: ev.data });
       } else if (ev.t === "card" && ev.kind === "beneficiaries") {
         copy.push({ role: "assistant", content: "", kind: "beneficiaries", picker: ev.data });
+      } else if (ev.t === "card" && ev.kind === "amount") {
+        copy.push({ role: "assistant", content: "", kind: "amount", amountCard: ev.data });
       }
       copy.push({ role: "assistant", content: "" });
       return copy;
@@ -443,8 +456,8 @@ export function AssistantScreen() {
             const isStreamingMsg =
               streaming && i === lastIndex && m.role === "assistant" && (m.kind ?? "text") === "text";
 
-            // AI cards: transaction proposals, holdings, beneficiary picker.
-            if (m.kind === "action" || m.kind === "portfolio" || m.kind === "beneficiaries") {
+            // AI cards: transaction proposals, holdings, recipient/amount entry.
+            if (m.kind && m.kind !== "text") {
               return (
                 <div key={i} className="flex gap-3">
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-brand-soft text-primary-strong">
@@ -463,6 +476,12 @@ export function AssistantScreen() {
                       data={m.picker}
                       disabled={streaming}
                       onPick={pickBeneficiary}
+                    />
+                  ) : m.kind === "amount" && m.amountCard ? (
+                    <AmountCard
+                      data={m.amountCard}
+                      disabled={streaming}
+                      onSubmit={(amount, name) => pickBeneficiary(name, amount)}
                     />
                   ) : null}
                 </div>

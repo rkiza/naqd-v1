@@ -548,7 +548,8 @@
     "receiptOrder": "إيصال الأمر",
     "receiptDate": "التاريخ",
     "receiptRef": "المرجع",
-    "pickRecipientTitle": "اختر المستفيد"
+    "pickRecipientTitle": "اختر المستفيد",
+    "amountTitle": "كم تريد أن ترسل؟"
   },
   "notifications": {
     "title": "الإشعارات",
