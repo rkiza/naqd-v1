@@ -425,7 +425,9 @@ function ReceiptView({ action, locale }: { action: ActionView; locale: Locale })
     if (downloading) return;
     setDownloading(true);
     try {
-      const res = await fetch(`/api/assistant/actions/${action.id}/receipt?locale=${locale}`);
+      const res = await fetch(`/api/assistant/actions/${action.id}/receipt?locale=${locale}`, {
+        cache: "no-store", // never re-serve a previously cached error response
+      });
       const type = res.headers.get("content-type") ?? "";
       if (!res.ok || !type.includes("application/pdf")) throw new Error("not a pdf");
       const blob = await res.blob();
