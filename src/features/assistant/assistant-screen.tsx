@@ -16,20 +16,23 @@ import { MarkdownMessage } from "./markdown-message";
 import { ConversationSidebar, type ConversationSummary } from "./conversation-sidebar";
 import { ActionCard, type ActionView } from "./action-card";
 import { PortfolioCard, type PortfolioCardData } from "./portfolio-card";
+import { BeneficiaryPickerCard, type BeneficiaryPickerData } from "./beneficiary-picker-card";
 
 type Msg = {
   role: "user" | "assistant";
   content: string;
-  kind?: "text" | "action" | "portfolio";
+  kind?: "text" | "action" | "portfolio" | "beneficiaries";
   action?: ActionView;
   card?: PortfolioCardData;
+  picker?: BeneficiaryPickerData;
 };
 
 /** One NDJSON event from /api/chat. */
 type ChatEvent =
   | { t: "text"; d: string }
   | { t: "action"; action: ActionView }
-  | { t: "card"; kind: "portfolio"; data: PortfolioCardData };
+  | { t: "card"; kind: "portfolio"; data: PortfolioCardData }
+  | { t: "card"; kind: "beneficiaries"; data: BeneficiaryPickerData };
 
 /** Compact text stand-in for a card so the model keeps conversational context. */
 function serializeForModel(m: Msg): string {
@@ -42,6 +45,9 @@ function serializeForModel(m: Msg): string {
     return `[${m.action.type} card: ${what} — status: ${m.action.status}]`;
   }
   if (m.kind === "portfolio") return "[holdings card shown]";
+  if (m.kind === "beneficiaries") {
+    return `[beneficiary picker shown${m.picker?.amount ? ` for SAR ${m.picker.amount}` : ""}]`;
+  }
   return m.content;
 }
 
@@ -126,7 +132,7 @@ export function AssistantScreen() {
           content: string;
           kind?: string;
           action?: ActionView | null;
-          card?: PortfolioCardData | null;
+          card?: PortfolioCardData | BeneficiaryPickerData | null;
         }>;
       };
       const mapped: Msg[] = (data.messages ?? []).flatMap((m) => {
@@ -137,7 +143,12 @@ export function AssistantScreen() {
         }
         if (m.kind === "portfolio") {
           return m.card
-            ? [{ role: m.role, content: m.content, kind: "portfolio" as const, card: m.card }]
+            ? [{ role: m.role, content: m.content, kind: "portfolio" as const, card: m.card as PortfolioCardData }]
+            : [];
+        }
+        if (m.kind === "beneficiaries") {
+          return m.card
+            ? [{ role: m.role, content: m.content, kind: "beneficiaries" as const, picker: m.card as BeneficiaryPickerData }]
             : [];
         }
         return [{ role: m.role, content: m.content }];
@@ -182,6 +193,8 @@ export function AssistantScreen() {
         copy.push({ role: "assistant", content: "", kind: "action", action: ev.action });
       } else if (ev.t === "card" && ev.kind === "portfolio") {
         copy.push({ role: "assistant", content: "", kind: "portfolio", card: ev.data });
+      } else if (ev.t === "card" && ev.kind === "beneficiaries") {
+        copy.push({ role: "assistant", content: "", kind: "beneficiaries", picker: ev.data });
       }
       copy.push({ role: "assistant", content: "" });
       return copy;
@@ -309,6 +322,19 @@ export function AssistantScreen() {
     }
   }
 
+  /** A beneficiary was tapped in the picker — send the choice as the user's message. */
+  function pickBeneficiary(name: string, amount?: number | null) {
+    const message =
+      locale === "ar"
+        ? amount
+          ? `حوّل ${amount} إلى ${name}`
+          : `أرسل إلى ${name}`
+        : amount
+          ? `Send SAR ${amount} to ${name}`
+          : `Send to ${name}`;
+    void send(message);
+  }
+
   async function copy(text: string, i: number) {
     try {
       await navigator.clipboard.writeText(text);
@@ -417,8 +443,8 @@ export function AssistantScreen() {
             const isStreamingMsg =
               streaming && i === lastIndex && m.role === "assistant" && (m.kind ?? "text") === "text";
 
-            // AI-proposed transaction / holdings cards.
-            if (m.kind === "action" || m.kind === "portfolio") {
+            // AI cards: transaction proposals, holdings, beneficiary picker.
+            if (m.kind === "action" || m.kind === "portfolio" || m.kind === "beneficiaries") {
               return (
                 <div key={i} className="flex gap-3">
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-brand-soft text-primary-strong">
@@ -430,8 +456,14 @@ export function AssistantScreen() {
                       busy={actionBusy === m.action.id}
                       onDecide={(decision) => decide(m.action!, decision)}
                     />
-                  ) : m.card ? (
+                  ) : m.kind === "portfolio" && m.card ? (
                     <PortfolioCard data={m.card} />
+                  ) : m.kind === "beneficiaries" && m.picker ? (
+                    <BeneficiaryPickerCard
+                      data={m.picker}
+                      disabled={streaming}
+                      onPick={pickBeneficiary}
+                    />
                   ) : null}
                 </div>
               );

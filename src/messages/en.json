@@ -547,7 +547,8 @@
     "receiptSend": "Transfer receipt",
     "receiptOrder": "Order receipt",
     "receiptDate": "Date",
-    "receiptRef": "Reference"
+    "receiptRef": "Reference",
+    "pickRecipientTitle": "Choose a recipient"
   },
   "notifications": {
     "title": "Notifications",

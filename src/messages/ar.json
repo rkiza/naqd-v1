@@ -547,7 +547,8 @@
     "receiptSend": "إيصال التحويل",
     "receiptOrder": "إيصال الأمر",
     "receiptDate": "التاريخ",
-    "receiptRef": "المرجع"
+    "receiptRef": "المرجع",
+    "pickRecipientTitle": "اختر المستفيد"
   },
   "notifications": {
     "title": "الإشعارات",

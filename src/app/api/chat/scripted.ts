@@ -39,6 +39,7 @@ const replies: Record<string, Reply> = {
 
 export type ScriptedIntent =
   | { kind: "send"; beneficiary: string; amount: number }
+  | { kind: "send_pick"; amount: number }
   | { kind: "trade"; side: "buy_stock" | "sell_stock"; symbol: string; units: number }
   | { kind: "list" };
 
@@ -59,7 +60,8 @@ export function detectIntent(message: string): ScriptedIntent | null {
   const m = normalizeDigits(message).trim();
   const lower = m.toLowerCase();
 
-  // Send money: "send 500 to sara" / "حوّل ٥٠٠ إلى سارة"
+  // Send money: "send 500 to sara" / "حوّل ٥٠٠ إلى سارة".
+  // With an amount but no recipient ("send 150"), ask via the tappable picker.
   if (/(^|\s)(send|transfer)\s/.test(lower) || /(حوّل|حول|أرسل|ارسل|تحويل|إرسال)/.test(m)) {
     const amount = firstNumber(m);
     const to = m.match(/(?:\bto\b|إلى|الى|لـ)\s*(.+)$/i)?.[1]?.trim();
@@ -67,6 +69,7 @@ export function detectIntent(message: string): ScriptedIntent | null {
       const beneficiary = to.replace(/[.!?،؟]+$/, "").replace(/\s+(please|now|من فضلك|الآن)$/i, "");
       return { kind: "send", beneficiary, amount };
     }
+    if (amount && !to) return { kind: "send_pick", amount };
   }
 
   // Trades: "buy 5 shares of aramco" / "اشترِ ٣ أسهم أرامكو" / "sell 2 NVDA" / "بع سهمين"
@@ -105,6 +108,10 @@ const actionText: Record<string, Reply> = {
   list: {
     en: "Here are your current positions and available trading cash.",
     ar: "هذه مراكزك الحالية والنقد المتاح للتداول.",
+  },
+  pickRecipient: {
+    en: "Sure — who would you like to send it to? Pick a beneficiary below.",
+    ar: "تمام — لمن تريد التحويل؟ اختر مستفيدًا من القائمة بالأسفل.",
   },
   invalid_amount: {
     en: "That amount doesn't look right — try a positive number, like 250.",

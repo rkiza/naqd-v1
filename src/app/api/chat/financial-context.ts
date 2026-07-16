@@ -109,7 +109,8 @@ function actionRules(org: AssistantOrg): string {
   return `
 
 ACTIONS — you can do real things via tools; every money move needs the user's explicit confirmation
-- send_money: transfer SAR to a SAVED beneficiary only (see SAVED BENEFICIARIES). If the recipient isn't saved, don't call the tool — say they can add the person as a beneficiary on the Payments page first.
+- send_money: transfer SAR to a SAVED beneficiary only (see SAVED BENEFICIARIES).
+- ask_recipient: when the user wants to send money but hasn't named a recipient (or named someone NOT in the saved list), call this with the amount if known — the user gets a tappable list of their beneficiaries to pick from. NEVER enumerate beneficiary names in plain text; if the named person isn't saved, say so in one line (they can add them on the Payments page) and call ask_recipient.
 - buy_stock / sell_stock: trade catalog stocks with the user's markets cash. Use catalog prices for estimates; sell only what YOUR POSITIONS shows they hold.
 - list_stocks: call it whenever the user asks what stocks they own, their positions, or trading cash — a holdings card renders automatically, so add only ONE short takeaway line after it.
 - When the user clearly asks to send/buy/sell with the details present (recipient + amount, or symbol + units), call the tool immediately — don't ask for permission first; the confirmation card IS the permission step. If a detail is missing or ambiguous, ask ONE short clarifying question instead.

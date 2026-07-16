@@ -73,6 +73,20 @@ const TOOLS = [
   {
     type: "function",
     function: {
+      name: "ask_recipient",
+      description:
+        "Show the user a tappable list of their saved beneficiaries to pick a transfer recipient. Use when the user wants to send money but hasn't named a valid saved beneficiary (or named someone not in the list) — instead of listing names in text. Pass the amount if already known.",
+      parameters: {
+        type: "object",
+        properties: {
+          amount: { type: "number", description: "Amount in SAR, if the user already gave it" },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "buy_stock",
       description:
         "Propose buying a stock from the naqd catalog (see STOCK CATALOG) using the user's markets cash. Shows a confirmation card — executes only after the user confirms.",
@@ -365,9 +379,12 @@ export async function POST(req: Request) {
         }
       };
 
-      // Proposal cards are queued and only surfaced AFTER the model's reply, so
-      // the chat reads "I've set up a transfer…" first, card underneath.
-      const queuedCards: Array<{ id: string; type: ActionType; payload: ActionPayload }> = [];
+      // Cards are queued and only surfaced AFTER the model's reply, so the chat
+      // reads "I've set up a transfer…" / "Who to?" first, card underneath.
+      type QueuedCard =
+        | { kind: "action"; id: string; type: ActionType; payload: ActionPayload }
+        | { kind: "beneficiaries"; data: Prisma.JsonObject };
+      const queuedCards: QueuedCard[] = [];
 
       /** Create a pending action and queue its card for after the reply text. */
       const proposeAction = async (type: ActionType, payload: ActionPayload) => {
@@ -380,7 +397,7 @@ export async function POST(req: Request) {
           },
         });
         sideEffects = true; // a DB row exists — never retry into a duplicate
-        queuedCards.push({ id: action.id, type, payload });
+        queuedCards.push({ kind: "action", id: action.id, type, payload });
         await logActivity({
           action: "assistant.action.propose",
           userId,
@@ -391,7 +408,7 @@ export async function POST(req: Request) {
         return action.id;
       };
 
-      /** Persist + emit the queued proposal cards (called after the text flush). */
+      /** Persist + emit the queued cards (called after the text flush). */
       const flushActionCards = async () => {
         while (queuedCards.length) {
           const card = queuedCards.shift()!;
@@ -401,15 +418,37 @@ export async function POST(req: Request) {
                 conversationId: convoId,
                 role: "assistant",
                 content: "",
-                kind: "action",
-                payload: { actionId: card.id },
+                kind: card.kind === "action" ? "action" : "beneficiaries",
+                payload: card.kind === "action" ? { actionId: card.id } : card.data,
               },
             });
           } catch {
             /* persistence best-effort */
           }
-          emit({ t: "action", action: { id: card.id, type: card.type, status: "pending", payload: card.payload } });
+          if (card.kind === "action") {
+            emit({ t: "action", action: { id: card.id, type: card.type, status: "pending", payload: card.payload } });
+          } else {
+            emit({ t: "card", kind: "beneficiaries", data: card.data });
+          }
         }
+      };
+
+      /** Queue the tappable saved-beneficiaries picker (surfaced after the reply). */
+      const queueBeneficiaryPicker = (amount?: number) => {
+        sideEffects = true;
+        queuedCards.push({
+          kind: "beneficiaries",
+          data: {
+            amount: amount && Number.isFinite(amount) && amount > 0 ? amount : null,
+            beneficiaries: finance.beneficiaries.map((b) => ({
+              extId: b.id,
+              name: b.name,
+              bank: b.bank,
+              ibanLast4: b.iban.slice(-4),
+              favorite: b.favorite,
+            })),
+          } as unknown as Prisma.JsonObject,
+        });
       };
 
       /** Persist + surface the holdings card; returns the data for the model. */
@@ -456,6 +495,13 @@ export async function POST(req: Request) {
                 plPercent: p.plPercent,
               })),
             });
+          }
+          case "ask_recipient": {
+            if (!finance.beneficiaries.length) {
+              return "ERROR: no_beneficiaries — the user has no saved beneficiaries. Tell them to add one on the Payments page first.";
+            }
+            queueBeneficiaryPicker(Number(args.amount));
+            return "A tappable list of the user's saved beneficiaries will appear right BELOW your reply. Reply with ONE short line asking them to pick a recipient (mention the amount if known). When they answer with a name, call send_money.";
           }
           case "send_money": {
             const v = await validateSendMoney(userId, org.membership, {
@@ -513,11 +559,26 @@ export async function POST(req: Request) {
         if (intent?.kind === "send") {
           const v = await validateSendMoney(userId, org.membership, intent);
           if (!v.ok) {
+            if (v.error === "beneficiary_not_found" && finance.beneficiaries.length) {
+              // Unknown name → let them pick from the saved list instead.
+              await emitScripted(scriptedActionText("pickRecipient", locale));
+              queueBeneficiaryPicker(intent.amount);
+              return;
+            }
             await emitScripted(scriptedActionText(v.error, locale, v.detail));
             return;
           }
           await emitScripted(scriptedActionText("proposal", locale));
           await proposeAction("send_money", v.payload); // card flushes after the text
+          return;
+        }
+        if (intent?.kind === "send_pick") {
+          if (!finance.beneficiaries.length) {
+            await emitScripted(scriptedActionText("beneficiary_not_found", locale));
+            return;
+          }
+          await emitScripted(scriptedActionText("pickRecipient", locale));
+          queueBeneficiaryPicker(intent.amount); // card flushes after the text
           return;
         }
         if (intent?.kind === "trade") {
