@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useLocale, useTranslations } from "next-intl";
-import { Loader2, Send, TrendingDown, TrendingUp } from "lucide-react";
+import { Download, Loader2, Send, TrendingDown, TrendingUp } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { Money } from "@/components/ui/money";
@@ -376,24 +376,36 @@ function ReceiptRow({
   );
 }
 
-/** Torn-paper bottom edge — filled triangles matching the receipt surface. */
+/** Torn-paper bottom edge — filled triangles with an outlined tear line so the
+ * receipt visibly "ends" even when the page behind matches the paper color. */
 function Sawtooth() {
   const W = 336;
   const TEETH = 16;
   const tw = W / TEETH;
-  let d = `M0 0 H${W} `;
+  let fill = `M0 0 H${W} `;
+  let line = "M0 0 ";
   for (let x = W; x > 0.5; x -= tw) {
-    d += `L${(x - tw / 2).toFixed(1)} 10 L${(x - tw).toFixed(1)} 0 `;
+    fill += `L${(x - tw / 2).toFixed(1)} 10 L${(x - tw).toFixed(1)} 0 `;
   }
-  d += "Z";
+  fill += "Z";
+  for (let x = 0; x < W - 0.5; x += tw) {
+    line += `L${(x + tw / 2).toFixed(1)} 10 L${(x + tw).toFixed(1)} 0 `;
+  }
   return (
     <svg
-      viewBox={`0 0 ${W} 11`}
+      viewBox={`0 0 ${W} 11.5`}
       preserveAspectRatio="none"
       className="block h-2.5 w-full"
       aria-hidden
     >
-      <path d={d} style={{ fill: "var(--surface)" }} />
+      <path d={fill} style={{ fill: "var(--surface)" }} />
+      <path
+        d={line}
+        fill="none"
+        style={{ stroke: "var(--border)" }}
+        strokeWidth={1.25}
+        vectorEffect="non-scaling-stroke"
+      />
     </svg>
   );
 }
@@ -404,6 +416,7 @@ function ReceiptView({ action, locale }: { action: ActionView; locale: Locale })
   const p = action.payload;
   const isSend = p.kind === "send_money";
   const isBuy = p.kind === "buy_stock";
+  const pdfUrl = `/api/assistant/actions/${action.id}/receipt?locale=${locale}`;
   const executed = action.executedAt ? new Date(action.executedAt) : new Date();
   const reference = action.id.slice(-8).toUpperCase();
   const amount = isSend ? p.amount : p.totalSar;
@@ -413,7 +426,9 @@ function ReceiptView({ action, locale }: { action: ActionView; locale: Locale })
 
   return (
     <div>
-      <div className="rounded-t-2xl border border-b-0 border-border bg-surface px-5 pb-4 pt-4 shadow-xs">
+      {/* drop-shadow (not box-shadow) so the torn edge casts it too */}
+      <div className="[filter:drop-shadow(0_1px_3px_rgb(0_0_0/0.08))]">
+      <div className="rounded-t-2xl border border-b-0 border-border bg-surface px-5 pb-4 pt-4">
         {/* Brand + executed pill */}
         <div className="flex items-center justify-between gap-2">
           <span className="inline-flex min-w-0 items-center gap-2">
@@ -498,6 +513,24 @@ function ReceiptView({ action, locale }: { action: ActionView; locale: Locale })
         </div>
       </div>
       <Sawtooth />
+      </div>
+
+      {/* Download as a real PDF (rendered server-side by WeasyPrint) */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5, duration: 0.3 }}
+        className="mt-2 flex justify-end"
+      >
+        <a
+          href={pdfUrl}
+          download
+          className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          <Download className="h-3.5 w-3.5" />
+          {t("downloadPdf")}
+        </a>
+      </motion.div>
     </div>
   );
 }

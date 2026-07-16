@@ -549,7 +549,8 @@
     "receiptDate": "التاريخ",
     "receiptRef": "المرجع",
     "pickRecipientTitle": "اختر المستفيد",
-    "amountTitle": "كم تريد أن ترسل؟"
+    "amountTitle": "كم تريد أن ترسل؟",
+    "downloadPdf": "تحميل PDF"
   },
   "notifications": {
     "title": "الإشعارات",
